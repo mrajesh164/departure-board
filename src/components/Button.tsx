@@ -31,6 +31,9 @@ const VARIANTS: Record<Variant, string> = {
 type ButtonProps = {
   variant?: Variant;
   className?: string;
+  /* React 19 passes ref to function components as an ordinary prop, so the
+     delete confirmation can take focus without forwardRef. */
+  ref?: React.Ref<HTMLButtonElement>;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function Button({

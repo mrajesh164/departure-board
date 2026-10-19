@@ -34,7 +34,10 @@ type TripsContextValue = {
   updateTrip: (id: string, patch: (trip: Trip) => Trip) => void;
   removeTrip: (id: string) => void;
   toggleItem: (tripId: string, itemId: string) => void;
+  setItemQty: (tripId: string, itemId: string, qty: number) => void;
+  /** Adds an item and remembers it for the next run of this trip. */
   addItem: (tripId: string, item: Item) => void;
+  /** Removes an item and remembers not to suggest it next time. */
   removeItem: (tripId: string, itemId: string) => void;
   resetEverything: () => void;
 };
@@ -99,19 +102,69 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
     [updateTrip],
   );
 
-  const addItem = useCallback(
-    (tripId: string, item: Item) => {
-      updateTrip(tripId, (trip) => ({ ...trip, items: [...trip.items, item] }));
+  const setItemQty = useCallback(
+    (tripId: string, itemId: string, qty: number) => {
+      const clamped = Math.max(1, Math.min(99, Math.round(qty)));
+      updateTrip(tripId, (trip) => ({
+        ...trip,
+        items: trip.items.map((i) =>
+          i.id === itemId ? { ...i, qty: clamped } : i,
+        ),
+      }));
     },
     [updateTrip],
   );
 
+  /**
+   * Adding by hand is a correction, not just an edit: the label goes into
+   * `learned.add` so the next run of this trip starts with it already there.
+   */
+  const addItem = useCallback(
+    (tripId: string, item: Item) => {
+      updateTrip(tripId, (trip) => {
+        const key = item.label.toLowerCase();
+        return {
+          ...trip,
+          items: [...trip.items, item],
+          learned: {
+            // If it was previously dropped, un-drop it — the person changed their mind.
+            drop: trip.learned.drop.filter((d) => d.toLowerCase() !== key),
+            add: trip.learned.add.some((a) => a.toLowerCase() === key)
+              ? trip.learned.add
+              : [...trip.learned.add, item.label],
+          },
+        };
+      });
+    },
+    [updateTrip],
+  );
+
+  /**
+   * Removing is the mirror image. A suggested item goes onto `learned.drop` so
+   * it stops being offered; a hand-added one simply comes back off `learned.add`
+   * rather than being recorded as a rejection of a suggestion we never made.
+   */
   const removeItem = useCallback(
     (tripId: string, itemId: string) => {
-      updateTrip(tripId, (trip) => ({
-        ...trip,
-        items: trip.items.filter((i) => i.id !== itemId),
-      }));
+      updateTrip(tripId, (trip) => {
+        const item = trip.items.find((i) => i.id === itemId);
+        if (!item) return trip;
+        const key = item.label.toLowerCase();
+        const wasHandAdded = trip.learned.add.some(
+          (a) => a.toLowerCase() === key,
+        );
+        return {
+          ...trip,
+          items: trip.items.filter((i) => i.id !== itemId),
+          learned: {
+            add: trip.learned.add.filter((a) => a.toLowerCase() !== key),
+            drop:
+              wasHandAdded || trip.learned.drop.some((d) => d.toLowerCase() === key)
+                ? trip.learned.drop
+                : [...trip.learned.drop, item.label],
+          },
+        };
+      });
     },
     [updateTrip],
   );
@@ -128,6 +181,7 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       updateTrip,
       removeTrip,
       toggleItem,
+      setItemQty,
       addItem,
       removeItem,
       resetEverything,
@@ -139,6 +193,7 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       updateTrip,
       removeTrip,
       toggleItem,
+      setItemQty,
       addItem,
       removeItem,
       resetEverything,
