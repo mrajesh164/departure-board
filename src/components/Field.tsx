@@ -1,0 +1,142 @@
+"use client";
+
+import { useId } from "react";
+
+/**
+ * One field: a real <label>, an optional hint, and an error that sits directly
+ * under the control it belongs to.
+ *
+ * The children are a render function so the generated ids can't drift apart —
+ * every control gets `id`, and `aria-describedby` wired to whichever of the
+ * hint and the error are actually present. That makes it impossible to add a
+ * field to this app without a label properly tied to it.
+ *
+ * Error copy is written as an instruction ("Enter a destination.") rather than
+ * a diagnosis ("Invalid input."). That's a requirement, and it's enforced by
+ * whoever writes the string — keep it in the imperative.
+ */
+
+export type ControlProps = {
+  id: string;
+  "aria-describedby": string | undefined;
+  "aria-invalid": boolean | undefined;
+  "data-invalid": boolean | undefined;
+};
+
+type FieldProps = {
+  label: string;
+  /** Marked visibly, per the brief's "Aisle (optional)" example. */
+  optional?: boolean;
+  hint?: string;
+  error?: string;
+  children: (props: ControlProps) => React.ReactNode;
+};
+
+export function Field({
+  label,
+  optional = false,
+  hint,
+  error,
+  children,
+}: FieldProps) {
+  const id = useId();
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
+
+  const describedBy =
+    [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(" ") ||
+    undefined;
+
+  return (
+    <div className="mb-6">
+      <label
+        htmlFor={id}
+        className="mb-1.5 block font-sans text-small font-semibold text-ink"
+      >
+        {label}
+        {optional && (
+          <span className="ml-1.5 font-normal text-muted">(optional)</span>
+        )}
+      </label>
+
+      {hint && (
+        <p id={hintId} className="mb-1.5 text-small text-muted">
+          {hint}
+        </p>
+      )}
+
+      {children({
+        id,
+        "aria-describedby": describedBy,
+        "aria-invalid": error ? true : undefined,
+        "data-invalid": error ? true : undefined,
+      })}
+
+      {error && (
+        /* An error is a rule, an icon and a tint — never an accent fill. */
+        <p
+          id={errorId}
+          role="alert"
+          className="mt-1.5 flex items-start gap-2 border-l-2 border-error bg-selected px-2.5 py-1.5 text-small text-error"
+        >
+          <span aria-hidden="true" className="font-semibold">
+            !
+          </span>
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------
+   Controls. All share one frame so an input and a select look identical.
+------------------------------------------------------------------------- */
+
+const CONTROL =
+  "w-full rounded-[2px] border border-rule-strong bg-surface px-3 py-2 " +
+  "font-sans text-body text-ink placeholder:text-muted " +
+  "data-[invalid=true]:border-error data-[invalid=true]:bg-selected";
+
+export function TextInput({
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={`${CONTROL} ${className}`} {...props} />;
+}
+
+export function Select({
+  className = "",
+  children,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    /* Native control, same frame as the input, per the design system. */
+    <select className={`${CONTROL} ${className}`} {...props}>
+      {children}
+    </select>
+  );
+}
+
+/* -------------------------------------------------------------------------
+   A square checkbox. (Radios are round; checkboxes are not.)
+------------------------------------------------------------------------- */
+
+export function Checkbox({
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      type="checkbox"
+      className={
+        "size-[18px] shrink-0 appearance-none rounded-[2px] border border-rule-strong " +
+        "bg-surface checked:border-ink checked:bg-ink " +
+        "checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><path d=%22M3 8.5l3.5 3.5L13 5%22 fill=%22none%22 stroke=%22%23F6EFE3%22 stroke-width=%222.5%22/></svg>')] " +
+        "checked:bg-center checked:bg-no-repeat " +
+        `cursor-pointer ${className}`
+      }
+      {...props}
+    />
+  );
+}
