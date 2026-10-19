@@ -6,6 +6,7 @@ import { useTrips } from "./providers";
 import { Button, ButtonLink } from "@/components/Button";
 import { Badge, Card, Label, SectionRule } from "@/components/Card";
 import { PackProgress } from "@/components/PackProgress";
+import { YourData } from "@/components/YourData";
 import { STARTERS, createStarterTrip, starterDates } from "@/lib/starters";
 import {
   awaitingReview,
@@ -179,6 +180,8 @@ function TheBoard({ trips }: { trips: Trip[] }) {
           </ul>
         </>
       )}
+
+      <YourData />
     </div>
   );
 }
@@ -254,13 +257,16 @@ function TripRow({ trip, past = false }: { trip: Trip; past?: boolean }) {
         <span className="font-sans text-label uppercase text-muted">
           {countdownLabel(trip)}
         </span>
+        {/* A real button on every past row, not a link tucked in a menu.
+            Researching comparable tools made this the deliberate choice:
+            TripIt keeps years of trips and offers no way to act on one, and
+            Todoist's templates are a one-shot copy that never learns. Reusing
+            a corrected list is the thing this tool does that they don't, so it
+            gets the weight of a primary action. */}
         {past && (
-          <Link
-            href={`/trips/new?from=${trip.id}`}
-            className="text-small text-accent"
-          >
+          <ButtonLink href={`/trips/new?from=${trip.id}`} variant="primary">
             Pack this again
-          </Link>
+          </ButtonLink>
         )}
       </span>
     </li>

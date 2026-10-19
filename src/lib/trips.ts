@@ -10,7 +10,7 @@ import {
   manualConditions,
   type Conditions,
 } from "./climate";
-import { monthsSpanned, tripLengthDays } from "./suggestions";
+import { buildPackingList, monthsSpanned, tripLengthDays } from "./suggestions";
 
 /** Today as YYYY-MM-DD in the viewer's own timezone. */
 export function todayISO(): string {
@@ -128,4 +128,43 @@ export function awaitingReview(
   return sortForBoard(trips, today).find(
     (t) => phaseOf(t, today) === "past" && !t.review,
   );
+}
+
+/**
+ * Move a trip's dates and rebuild its list to match.
+ *
+ * Comparable tools get this wrong in a way real users complain about —
+ * PackPoint reviewers report no way to change dates short of recreating the
+ * trip. Rebuilding is the easy half; the part that matters is not throwing away
+ * work. Anything already checked off stays checked, and anything added by hand
+ * survives even if the new dates wouldn't have suggested it.
+ */
+export function relist(trip: Trip, startDate: string, endDate: string): Trip {
+  const moved: Trip = { ...trip, startDate, endDate };
+  const conditions = conditionsOf(moved);
+  if (!conditions) return moved;
+
+  const rebuilt = buildPackingList(
+    conditions,
+    tripLengthDays(startDate, endDate),
+    trip.learned,
+  );
+
+  const packedLabels = new Set(
+    trip.items.filter((i) => i.packed).map((i) => i.label.toLowerCase()),
+  );
+
+  const merged: Item[] = rebuilt.map((item) =>
+    packedLabels.has(item.label.toLowerCase())
+      ? { ...item, packed: true }
+      : item,
+  );
+
+  // Hand-added items aren't the suggestion engine's to remove.
+  const present = new Set(merged.map((i) => i.label.toLowerCase()));
+  for (const own of trip.items.filter((i) => i.source === "manual")) {
+    if (!present.has(own.label.toLowerCase())) merged.push(own);
+  }
+
+  return { ...moved, items: merged };
 }

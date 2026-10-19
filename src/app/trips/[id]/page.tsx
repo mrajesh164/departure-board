@@ -10,7 +10,9 @@ import { CategorySection } from "@/components/CategorySection";
 import { AddItemForm } from "@/components/AddItemForm";
 import { Checkbox } from "@/components/Field";
 import { PackCount, PackProgress } from "@/components/PackProgress";
-import { MONTHS, describeConditions } from "@/lib/climate";
+import { MONTHS } from "@/lib/climate";
+import { ConditionsNote } from "@/components/ConditionsNote";
+import { EditDates } from "@/components/EditDates";
 import { monthsSpanned } from "@/lib/suggestions";
 import {
   conditionsOf,
@@ -128,10 +130,12 @@ function Checklist() {
       <h1 className="mt-1 font-display text-heading text-ink">{trip.name}</h1>
 
       {conditions && (
-        <p className="measure mt-1 text-small text-muted">
-          Usually {describeConditions(conditions)} — that&apos;s what this list
-          is built for.
-        </p>
+        <ConditionsNote
+          conditions={conditions}
+          month={context.month}
+          destination={trip.destination}
+          source={trip.climateSlug ? "climate" : "manual"}
+        />
       )}
 
       {/* --- progress --- */}
@@ -214,6 +218,8 @@ function Checklist() {
         <Link href="/" className="text-small text-ink">
           Back to the board
         </Link>
+
+        {phase !== "past" && <EditDates trip={trip} />}
 
         {phase !== "past" && !allPacked && (
           <Button variant="quiet" onClick={finish}>

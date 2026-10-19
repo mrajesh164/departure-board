@@ -39,6 +39,8 @@ type TripsContextValue = {
   addItem: (tripId: string, item: Item) => void;
   /** Removes an item and remembers not to suggest it next time. */
   removeItem: (tripId: string, itemId: string) => void;
+  /** Replace everything — used when restoring an export. */
+  replaceAll: (trips: Trip[]) => void;
   resetEverything: () => void;
 };
 
@@ -169,6 +171,13 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
     [updateTrip],
   );
 
+  const replaceAll = useCallback(
+    (next: Trip[]) => {
+      commit({ version: 1, trips: next });
+    },
+    [commit],
+  );
+
   const resetEverything = useCallback(() => {
     commit(EMPTY_STATE);
   }, [commit]);
@@ -184,6 +193,7 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       setItemQty,
       addItem,
       removeItem,
+      replaceAll,
       resetEverything,
     }),
     [
@@ -196,6 +206,7 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       setItemQty,
       addItem,
       removeItem,
+      replaceAll,
       resetEverything,
     ],
   );
