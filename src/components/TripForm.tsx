@@ -8,6 +8,7 @@ import { Label } from "./Card";
 import { useTrips } from "@/app/providers";
 import {
   BAND_LABEL,
+  CLIMATES,
   MONTHS,
   WETNESS_LABEL,
   conditionsFor,
@@ -52,12 +53,24 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
   );
   const [errors, setErrors] = useState<Errors>({});
 
-  const matches = useMemo(
-    () => (climateSlug ? [] : searchClimates(destination)),
-    [destination, climateSlug],
-  );
+  /**
+   * Resolve the destination to a climate from either an explicit pick or an
+   * exact name match. Without the second half, typing "Minneapolis" in full and
+   * pressing submit — rather than clicking the suggestion — silently fell
+   * through to generic "mild" conditions for a city we have real data for.
+   */
+  const climate = useMemo(() => {
+    if (climateSlug) return findClimate(climateSlug);
+    const typed = destination.trim().toLowerCase();
+    if (!typed) return undefined;
+    return CLIMATES.find((c) => c.city.toLowerCase() === typed);
+  }, [climateSlug, destination]);
 
-  const climate = findClimate(climateSlug);
+  /* Once it's resolved, the suggestion list has nothing left to offer. */
+  const matches = useMemo(
+    () => (climate ? [] : searchClimates(destination)),
+    [destination, climate],
+  );
 
   /* The destination isn't in the table, so ask rather than guess. Not an error —
      a trip to a village in the Alps is a perfectly good trip. */
