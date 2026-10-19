@@ -126,18 +126,22 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
   );
 
   /**
-   * Adding by hand is a correction, not just an edit: the label goes into
-   * `learned.add` so the next run of this trip starts with it already there.
+   * Adding by hand does three things at once, because they're all the same act:
+   * the item joins this trip, it joins `learned.add` so the next run of the trip
+   * starts with it already there, and it joins your inventory — if you packed
+   * it, you own it, and having to list it a second time would be busywork.
    */
-  const addItem = useCallback(
-    (tripId: string, item: Item) => {
-      updateTrip(tripId, (trip) => {
-        const key = item.label.toLowerCase();
+  const addItem = useCallback((tripId: string, item: Item) => {
+    setState((prev) => {
+      const key = item.label.toLowerCase();
+
+      const trips = prev.trips.map((trip) => {
+        if (trip.id !== tripId) return trip;
         return {
           ...trip,
           items: [...trip.items, item],
           learned: {
-            // If it was previously dropped, un-drop it — the person changed their mind.
+            // Previously dropped? They've changed their mind — un-drop it.
             drop: trip.learned.drop.filter((d) => d.toLowerCase() !== key),
             add: trip.learned.add.some((a) => a.toLowerCase() === key)
               ? trip.learned.add
@@ -145,9 +149,25 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
           },
         };
       });
-    },
-    [updateTrip],
-  );
+
+      const alreadyOwned = prev.kit.some((k) => k.label.toLowerCase() === key);
+      const kit = alreadyOwned
+        ? prev.kit
+        : [
+            ...prev.kit,
+            {
+              id: crypto.randomUUID(),
+              label: item.label,
+              category: item.category,
+              addedAt: new Date().toISOString(),
+            },
+          ];
+
+      const next = { ...prev, trips, kit };
+      writeState(next);
+      return next;
+    });
+  }, []);
 
   /**
    * Removing is the mirror image. A suggested item goes onto `learned.drop` so

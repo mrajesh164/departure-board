@@ -23,6 +23,7 @@ import {
   phaseOf,
 } from "@/lib/trips";
 import { categoriesPresent } from "@/lib/types";
+import { buildInventory } from "@/lib/inventory";
 
 /**
  * The checklist. The core task, and the screen this app exists for.
@@ -45,8 +46,17 @@ export default function TripPage() {
 function Checklist() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { trips, ready, toggleItem, setItemQty, addItem, removeItem, removeTrip, updateTrip } =
-    useTrips();
+  const {
+    trips,
+    kit,
+    ready,
+    toggleItem,
+    setItemQty,
+    addItem,
+    removeItem,
+    removeTrip,
+    updateTrip,
+  } = useTrips();
 
   const trip = trips.find((t) => t.id === id);
 
@@ -103,11 +113,14 @@ function Checklist() {
   const days = lengthOf(trip);
   const phase = phaseOf(trip);
 
-  const context = {
-    month: MONTHS[monthsSpanned(trip.startDate, trip.endDate)[0]],
-    destination: trip.destination,
-    days,
-  };
+  const month = MONTHS[monthsSpanned(trip.startDate, trip.endDate)[0]];
+
+  /* Everything in the inventory that isn't already on this list, so the picker
+     only ever offers something useful. */
+  const onThisList = new Set(trip.items.map((i) => i.label.toLowerCase()));
+  const inventoryOptions = buildInventory(trips, kit)
+    .filter((e) => !e.dropped && !onThisList.has(e.label.toLowerCase()))
+    .map((e) => ({ label: e.label, category: e.category }));
 
   const visible = hidePacked ? trip.items.filter((i) => !i.packed) : trip.items;
 
@@ -143,7 +156,7 @@ function Checklist() {
       {conditions && (
         <ConditionsNote
           conditions={conditions}
-          month={context.month}
+          month={month}
           destination={trip.destination}
           source={trip.climateSlug ? "climate" : "manual"}
         />
@@ -195,7 +208,6 @@ function Checklist() {
             key={category}
             category={category}
             items={visible.filter((i) => i.category === category)}
-            context={context}
             onToggle={(itemId) => toggleItem(trip.id, itemId)}
             onQty={(itemId, qty) => setItemQty(trip.id, itemId, qty)}
             onRemove={(itemId) => removeItem(trip.id, itemId)}
@@ -223,6 +235,7 @@ function Checklist() {
           existingCategories={categoriesPresent(
             trip.items.map((i) => i.category),
           )}
+          inventoryOptions={inventoryOptions}
           onAdd={(item) => addItem(trip.id, item)}
         />
       </div>

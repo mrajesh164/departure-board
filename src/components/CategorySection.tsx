@@ -1,6 +1,6 @@
 "use client";
 
-import { ItemRow, reasonFor } from "./ItemRow";
+import { ItemRow } from "./ItemRow";
 import { PackCount } from "./PackProgress";
 import { styleFor } from "./categoryStyle";
 import type { Item, ItemCategory } from "@/lib/types";
@@ -20,14 +20,12 @@ import type { Item, ItemCategory } from "@/lib/types";
 export function CategorySection({
   category,
   items,
-  context,
   onToggle,
   onQty,
   onRemove,
 }: {
   category: ItemCategory;
   items: Item[];
-  context: { month: string; destination: string; days: number };
   onToggle: (itemId: string) => void;
   onQty: (itemId: string, qty: number) => void;
   onRemove: (itemId: string) => void;
@@ -77,7 +75,6 @@ export function CategorySection({
           <ItemRow
             key={item.id}
             item={item}
-            reason={reasonFor(item, context)}
             onToggle={() => onToggle(item.id)}
             onQty={(qty) => onQty(item.id, qty)}
             onRemove={() => onRemove(item.id)}

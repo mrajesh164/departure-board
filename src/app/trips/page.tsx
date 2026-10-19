@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTrips } from "@/app/providers";
-import { Button, ButtonLink } from "@/components/Button";
+import { ButtonLink } from "@/components/Button";
 import { Badge, Card, Label, SectionRule } from "@/components/Card";
 import { PackProgress } from "@/components/PackProgress";
 import { DestinationArt } from "@/components/DestinationArt";
-import { STARTERS, createStarterTrip, starterDates } from "@/lib/starters";
-import { conditionsFor, findClimate } from "@/lib/climate";
-import { monthsSpanned } from "@/lib/suggestions";
+import { StarterTrips } from "@/components/StarterTrips";
 import {
   awaitingReview,
   conditionsOf,
@@ -40,100 +37,12 @@ export default function BoardPage() {
     return <div aria-hidden="true" className="h-64" />;
   }
 
-  return trips.length === 0 ? <FirstVisit /> : <TheBoard trips={trips} />;
+  return <TheBoard trips={trips} />;
 }
 
 /* ------------------------------------------------------------------ */
 /* Flow 1 — the first visit                                            */
 /* ------------------------------------------------------------------ */
-
-function FirstVisit() {
-  const { addTrip } = useTrips();
-  const router = useRouter();
-
-  function adopt(key: string) {
-    const starter = STARTERS.find((s) => s.key === key);
-    if (!starter) return;
-    const trip = createStarterTrip(starter);
-    addTrip(trip);
-    // Straight to the built list — the useful thing, not a confirmation screen.
-    router.push(`/trips/${trip.id}`);
-  }
-
-  return (
-    <div data-when="first-visit">
-      <h1 className="font-display text-display text-ink">
-        What are you
-        <br />
-        packing for?
-      </h1>
-
-      <p className="measure mt-5 text-body text-muted">
-        Keep the trips you take again on one board. Each one builds its own
-        packing list from your dates, the weather there that month, and whatever
-        you worked out last time.
-      </p>
-
-      <Label className="mt-9">Start with one of these</Label>
-      <p className="mt-1 text-small text-muted">
-        You can change the dates, the destination, and every item afterwards.
-      </p>
-
-      <ul className="mt-3 grid gap-3 sm:grid-cols-3">
-        {STARTERS.map((starter) => {
-          const { startDate, endDate } = starterDates(starter);
-          const climate = findClimate(starter.climateSlug);
-          const conditions = climate
-            ? conditionsFor(climate, monthsSpanned(startDate, endDate))
-            : undefined;
-
-          return (
-            <li
-              key={starter.key}
-              className="flex flex-col border border-rule bg-surface"
-            >
-              {conditions && (
-                <DestinationArt
-                  seed={starter.destination}
-                  slug={starter.climateSlug}
-                  city={starter.destination}
-                  conditions={conditions}
-                  height={96}
-                  className="border-0 border-b border-rule-strong"
-                />
-              )}
-
-              <div className="flex flex-1 flex-col p-4">
-                <h2 className="font-display text-subhead text-ink">
-                  {starter.name}
-                </h2>
-                <p className="mt-1 flex-1 text-small text-muted">
-                  {starter.blurb}
-                </p>
-                <p className="mt-3 font-sans text-label uppercase text-muted">
-                  {formatDateRange(startDate, endDate)} · {starter.destination}
-                </p>
-                <Button
-                  variant="primary"
-                  className="mt-3 w-full"
-                  onClick={() => adopt(starter.key)}
-                >
-                  Build this list
-                </Button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
-      <p className="mt-7 text-body">
-        <Link href="/trips/new" className="text-ink">
-          Or plan a specific trip
-        </Link>
-      </p>
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /* Flows 2 and 3 — the board                                           */
@@ -149,7 +58,7 @@ function TheBoard({ trips }: { trips: Trip[] }) {
   return (
     <div data-when="returning">
       <div className="flex items-baseline justify-between gap-4">
-        <h1 className="font-display text-heading text-ink">Departures</h1>
+        <h1 className="font-display text-heading text-ink">Upcoming Trips</h1>
         <ButtonLink href="/trips/new" variant="primary">
           Add a trip
         </ButtonLink>
@@ -167,7 +76,15 @@ function TheBoard({ trips }: { trips: Trip[] }) {
         </ul>
       )}
 
-      {departures.length === 0 && (
+      {/* Never a dead end: with nothing saved at all, the board offers the same
+          ready-made trips the front door does. */}
+      {trips.length === 0 && (
+        <div className="mt-6 border-t-2 border-ink pt-6">
+          <StarterTrips />
+        </div>
+      )}
+
+      {trips.length > 0 && departures.length === 0 && (
         <p className="measure mt-4 text-body text-muted">
           Nothing coming up. Pack one of your previous trips again, or add a new
           one.

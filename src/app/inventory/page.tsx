@@ -242,7 +242,9 @@ function KitCategory({
             <span className="hidden text-small text-muted sm:block">
               {entry.onTrips === 0
                 ? "Not packed yet"
-                : `Packed ${entry.packedTimes}× of ${entry.onTrips}`}
+                : entry.packedTimes === 0
+                  ? `Never packed, on ${entry.onTrips} ${entry.onTrips === 1 ? "list" : "lists"}`
+                  : `Packed on ${entry.packedTimes} of ${entry.onTrips} ${entry.onTrips === 1 ? "trip" : "trips"}`}
             </span>
 
             <span className="flex flex-wrap items-center gap-2 sm:justify-start">

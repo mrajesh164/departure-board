@@ -3,6 +3,7 @@ import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { TripsProvider } from "./providers";
 import { Nav } from "@/components/Nav";
+import { ResetFirstVisit } from "@/components/ResetFirstVisit";
 import { HAS_TRIPS_SCRIPT } from "@/lib/storage";
 
 /* Café Terrace: Fraunces for display and headings, Source Sans for everything else. */
@@ -47,9 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
           </main>
           <footer className="mx-auto w-full max-w-3xl px-5 pb-8">
-            <p className="border-t border-rule pt-3 text-small text-muted">
-              Saved on this device only. No account, no server.
-            </p>
+            <div className="border-t border-rule pt-3">
+              <ResetFirstVisit />
+            </div>
           </footer>
         </TripsProvider>
       </body>

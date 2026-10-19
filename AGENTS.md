@@ -45,13 +45,25 @@ by reading a tour.
 
 Three tabs in the masthead, which is what gives the tool a legible purpose:
 
-| — | `/` | Home. Says what the tool is, leads with the next departure when there is one, and offers three ways in. |
+| — | `/` | Home, with two faces. **A true first visit lands here and the onboarding *is* this page** — three starter trips, one tap to a real list. Returning, it leads with the next departure and three ways in. |
 | Upcoming | `/trips` | The board. Starters on a true first visit; otherwise the next departure leads, with finished trips below a 2px rule and "Pack this again" on each. |
 | New trip | `/trips/new` | The form. Also serves `?from=<id>` to repeat a finished trip with its corrections applied. |
 | Inventory | `/inventory` | Your inventory. Things you list yourself (`kit` in storage) merged with everything trips reveal about what you actually pack, plus "What you took" per finished trip. |
 
 A trip (`/trips/[id]`) and its review belong to the Upcoming tab, since that's
 where you came from.
+
+**The first visit lives in `components/StarterTrips.tsx`**, rendered by both `/`
+and `/trips` so neither entry point can dead-end. The `data-when` CSS gate (see
+`globals.css`) now applies to home. `components/ResetFirstVisit.tsx` in the
+footer exists because otherwise the onboarding becomes unreachable the moment it
+succeeds — there's no other way to see it again on the same device.
+
+**Adding an item does three things at once** (`addItem` in `providers.tsx`): it
+joins the trip, joins `learned.add` so the next run of that trip starts with it,
+and joins your inventory. If you packed it, you own it. The add form can also
+pull straight *from* the inventory, which is what keeps that page from being a
+read-only report.
 
 **Inventory is mostly derived.** `src/lib/inventory.ts` aggregates `trip.items`
 plus `trip.learned` across all trips, then merges in `state.kit` — the things
