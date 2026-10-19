@@ -24,7 +24,13 @@ import {
   useState,
 } from "react";
 import { readState, writeState } from "@/lib/storage";
-import { EMPTY_STATE, type StoredState, type Item, type Trip } from "@/lib/types";
+import {
+  EMPTY_STATE,
+  type Item,
+  type KitItem,
+  type StoredState,
+  type Trip,
+} from "@/lib/types";
 
 type TripsContextValue = {
   trips: Trip[];
@@ -39,8 +45,10 @@ type TripsContextValue = {
   addItem: (tripId: string, item: Item) => void;
   /** Removes an item and remembers not to suggest it next time. */
   removeItem: (tripId: string, itemId: string) => void;
-  /** Replace everything — used when restoring an export. */
-  replaceAll: (trips: Trip[]) => void;
+  /** Things you own, added to your inventory directly. */
+  kit: KitItem[];
+  addKitItems: (labels: string[], category: string) => void;
+  removeKitItem: (id: string) => void;
   resetEverything: () => void;
 };
 
@@ -171,12 +179,40 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
     [updateTrip],
   );
 
-  const replaceAll = useCallback(
-    (next: Trip[]) => {
-      commit({ version: 1, trips: next });
-    },
-    [commit],
-  );
+  /**
+   * Add several at once: people list what they own in one go rather than one
+   * field at a time. Anything already in the inventory is skipped silently
+   * rather than erroring — pasting an overlapping list is normal.
+   */
+  const addKitItems = useCallback((labels: string[], category: string) => {
+    setState((prev) => {
+      const existing = new Set(prev.kit.map((k) => k.label.toLowerCase()));
+      const additions: KitItem[] = [];
+      for (const label of labels) {
+        const trimmed = label.trim();
+        if (!trimmed || existing.has(trimmed.toLowerCase())) continue;
+        existing.add(trimmed.toLowerCase());
+        additions.push({
+          id: crypto.randomUUID(),
+          label: trimmed,
+          category: category.trim() || "Extras",
+          addedAt: new Date().toISOString(),
+        });
+      }
+      if (additions.length === 0) return prev;
+      const next = { ...prev, kit: [...prev.kit, ...additions] };
+      writeState(next);
+      return next;
+    });
+  }, []);
+
+  const removeKitItem = useCallback((id: string) => {
+    setState((prev) => {
+      const next = { ...prev, kit: prev.kit.filter((k) => k.id !== id) };
+      writeState(next);
+      return next;
+    });
+  }, []);
 
   const resetEverything = useCallback(() => {
     commit(EMPTY_STATE);
@@ -193,7 +229,9 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       setItemQty,
       addItem,
       removeItem,
-      replaceAll,
+      kit: state.kit,
+      addKitItems,
+      removeKitItem,
       resetEverything,
     }),
     [
@@ -206,7 +244,9 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       setItemQty,
       addItem,
       removeItem,
-      replaceAll,
+      state.kit,
+      addKitItems,
+      removeKitItem,
       resetEverything,
     ],
   );

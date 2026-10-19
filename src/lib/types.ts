@@ -7,16 +7,15 @@ import type { TempBand, Wetness } from "./climate";
  */
 export type DateString = string;
 
-export type ItemCategory =
-  | "Outerwear"
-  | "Clothing"
-  | "Footwear"
-  | "Toiletries"
-  | "Tech"
-  | "Documents"
-  | "Extras";
+/**
+ * Categories are open-ended on purpose: the seven below cover most packing, but
+ * someone who needs "Climbing gear" or "Baby" shouldn't have to file it under
+ * Extras. Anything new gets a colour derived from its name — see
+ * components/categoryStyle.ts.
+ */
+export type ItemCategory = string;
 
-export const CATEGORY_ORDER: ItemCategory[] = [
+export const KNOWN_CATEGORIES = [
   "Documents",
   "Outerwear",
   "Clothing",
@@ -24,7 +23,23 @@ export const CATEGORY_ORDER: ItemCategory[] = [
   "Toiletries",
   "Tech",
   "Extras",
-];
+] as const;
+
+export type KnownCategory = (typeof KNOWN_CATEGORIES)[number];
+
+/** The default sections, in the order they should appear. */
+export const CATEGORY_ORDER: ItemCategory[] = [...KNOWN_CATEGORIES];
+
+/**
+ * Known sections first, then any the person invented, so a custom category
+ * never shuffles the familiar ones around.
+ */
+export function categoriesPresent(categories: string[]): ItemCategory[] {
+  const extras = [...new Set(categories)]
+    .filter((c) => !KNOWN_CATEGORIES.includes(c as KnownCategory))
+    .sort((a, b) => a.localeCompare(b));
+  return [...CATEGORY_ORDER, ...extras];
+}
 
 /** Why an item is on the list — shown to explain the tool's reasoning. */
 export type ItemSource =
@@ -79,9 +94,22 @@ export type Trip = {
   };
 };
 
+/**
+ * Something you own, added to your inventory directly rather than inferred from
+ * a trip. Trips still generate most of the picture; this is for the things you
+ * know you have but haven't packed yet.
+ */
+export type KitItem = {
+  id: string;
+  label: string;
+  category: ItemCategory;
+  addedAt: string;
+};
+
 export type StoredState = {
   version: 1;
   trips: Trip[];
+  kit: KitItem[];
 };
 
-export const EMPTY_STATE: StoredState = { version: 1, trips: [] };
+export const EMPTY_STATE: StoredState = { version: 1, trips: [], kit: [] };

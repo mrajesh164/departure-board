@@ -2,7 +2,7 @@
 
 import { ItemRow, reasonFor } from "./ItemRow";
 import { PackCount } from "./PackProgress";
-import { CATEGORY_STYLE } from "./categoryStyle";
+import { styleFor } from "./categoryStyle";
 import type { Item, ItemCategory } from "@/lib/types";
 
 /**
@@ -36,7 +36,7 @@ export function CategorySection({
 
   const packed = items.filter((i) => i.packed).length;
   const done = packed === items.length;
-  const style = CATEGORY_STYLE[category];
+  const style = styleFor(category);
 
   return (
     <section className="mb-6">

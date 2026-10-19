@@ -49,7 +49,7 @@ export function EditDates({ trip }: { trip: Trip }) {
   if (!open) {
     return (
       <>
-        <Button variant="quiet" onClick={() => setOpen(true)}>
+        <Button variant="secondary" onClick={() => setOpen(true)}>
           Change the dates
         </Button>
         <p aria-live="polite" className="text-small text-success">

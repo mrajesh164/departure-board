@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { Button } from "./Button";
-import { Field, TextInput } from "./Field";
+import { Field, Select, TextInput } from "./Field";
 import type { Item, ItemCategory } from "@/lib/types";
 import { CATEGORY_ORDER } from "@/lib/types";
-import { Select } from "./Field";
 
 /**
  * Add something the list didn't think of.
@@ -13,19 +12,35 @@ import { Select } from "./Field";
  * Two error states, both beside the field and both phrased as what to do next.
  * On a failed submit the typed value stays put — the whole point is that you
  * don't retype anything.
+ *
+ * The category select ends in "A new category…", which reveals a text field.
+ * Seven fixed sections cover most packing, but someone with climbing gear or a
+ * baby shouldn't have to file it under Extras.
  */
+
+const NEW_CATEGORY = "__new__";
 
 export function AddItemForm({
   existingLabels,
+  existingCategories,
   onAdd,
 }: {
   existingLabels: string[];
+  /** Custom categories already on this trip, so they can be reused. */
+  existingCategories?: ItemCategory[];
   onAdd: (item: Item) => void;
 }) {
   const [label, setLabel] = useState("");
-  const [category, setCategory] = useState<ItemCategory>("Extras");
+  const [category, setCategory] = useState<string>("Extras");
+  const [customCategory, setCustomCategory] = useState("");
   const [error, setError] = useState<string>();
+  const [categoryError, setCategoryError] = useState<string>();
   const [justAdded, setJustAdded] = useState<string>();
+
+  const extras = (existingCategories ?? []).filter(
+    (c) => !CATEGORY_ORDER.includes(c),
+  );
+  const choosingNew = category === NEW_CATEGORY;
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -41,18 +56,30 @@ export function AddItemForm({
       return;
     }
 
+    const resolved = choosingNew ? customCategory.trim() : category;
+    if (choosingNew && !resolved) {
+      setCategoryError("Name the new category.");
+      return;
+    }
+
     onAdd({
       id: crypto.randomUUID(),
       label: trimmed,
       qty: 1,
-      category,
+      category: resolved,
       source: "manual",
       packed: false,
     });
 
     setLabel("");
     setError(undefined);
+    setCategoryError(undefined);
     setJustAdded(trimmed);
+    // Keep the new category selected so several things can go into it in a row.
+    if (choosingNew) {
+      setCategory(resolved);
+      setCustomCategory("");
+    }
   }
 
   return (
@@ -76,20 +103,40 @@ export function AddItemForm({
           </Field>
         </div>
 
-        <div className="sm:w-48">
-          <Field label="Where it goes" optional>
+        <div className="sm:w-52">
+          <Field label="Where it goes" optional error={categoryError}>
             {(props) => (
-              <Select
-                {...props}
-                value={category}
-                onChange={(e) => setCategory(e.target.value as ItemCategory)}
-              >
-                {CATEGORY_ORDER.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
+              <>
+                <Select
+                  {...props}
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    if (categoryError) setCategoryError(undefined);
+                  }}
+                >
+                  {[...CATEGORY_ORDER, ...extras].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                  <option value={NEW_CATEGORY}>A new category…</option>
+                </Select>
+
+                {choosingNew && (
+                  <TextInput
+                    value={customCategory}
+                    autoFocus
+                    aria-label="Name the new category"
+                    placeholder="Climbing gear"
+                    className="mt-2"
+                    onChange={(e) => {
+                      setCustomCategory(e.target.value);
+                      if (categoryError) setCategoryError(undefined);
+                    }}
+                  />
+                )}
+              </>
             )}
           </Field>
         </div>
@@ -101,7 +148,7 @@ export function AddItemForm({
 
       {/* Confirmation, announced politely rather than interrupting. */}
       <p aria-live="polite" className="text-small text-success">
-        {justAdded ? `Added ${justAdded.toLowerCase()}. It'll be here next time too.` : ""}
+        {justAdded ? `Added ${justAdded}. It'll be here next time too.` : ""}
       </p>
     </form>
   );

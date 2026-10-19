@@ -11,7 +11,7 @@
  * interpolated from the same constant on purpose.
  */
 
-import { EMPTY_STATE, type StoredState, type Trip } from "./types";
+import { EMPTY_STATE, type KitItem, type StoredState, type Trip } from "./types";
 
 export const STORAGE_KEY = "departure-board.v1";
 
@@ -36,6 +36,25 @@ function isTrip(value: unknown): value is Trip {
 }
 
 /**
+ * Small corrections to labels already sitting in someone's storage. Fixing the
+ * spelling in the generator only helps lists built from now on; a trip created
+ * yesterday keeps the old wording until it's rewritten here too.
+ */
+const LABEL_FIXES: Record<string, string> = {
+  pyjamas: "Pajamas",
+};
+
+function fixLabel(label: string): string {
+  return LABEL_FIXES[label.toLowerCase()] ?? label;
+}
+
+function isKitItem(value: unknown): value is KitItem {
+  if (typeof value !== "object" || value === null) return false;
+  const k = value as Partial<KitItem>;
+  return typeof k.id === "string" && typeof k.label === "string";
+}
+
+/**
  * Read and validate. Anything malformed is discarded rather than crashing the
  * app — a person whose storage got mangled should land on the first visit, not
  * a white screen.
@@ -49,13 +68,22 @@ export function readState(): StoredState {
     if (typeof parsed !== "object" || parsed === null) return EMPTY_STATE;
     const trips = (parsed as StoredState).trips;
     if (!Array.isArray(trips)) return EMPTY_STATE;
+
+    // `kit` arrived after the first release, so treat it as optional on read.
+    const kit = (parsed as StoredState).kit;
+
     return {
       version: 1,
       trips: trips.filter(isTrip).map((t) => ({
         ...t,
+        items: t.items.map((i) => ({ ...i, label: fixLabel(i.label) })),
         // Older records may predate `learned`; normalize so callers can rely on it.
-        learned: t.learned ?? { drop: [], add: [] },
+        learned: {
+          drop: (t.learned?.drop ?? []).map(fixLabel),
+          add: (t.learned?.add ?? []).map(fixLabel),
+        },
       })),
+      kit: Array.isArray(kit) ? kit.filter(isKitItem) : [],
     };
   } catch {
     return EMPTY_STATE;

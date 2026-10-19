@@ -45,18 +45,23 @@ by reading a tour.
 
 Three tabs in the masthead, which is what gives the tool a legible purpose:
 
-| Tab | Route | What it is |
-|---|---|---|
-| Upcoming | `/` | The board. Starters on a true first visit; otherwise the next departure leads, with finished trips below a 2px rule and "Pack this again" on each. |
+| — | `/` | Home. Says what the tool is, leads with the next departure when there is one, and offers three ways in. |
+| Upcoming | `/trips` | The board. Starters on a true first visit; otherwise the next departure leads, with finished trips below a 2px rule and "Pack this again" on each. |
 | New trip | `/trips/new` | The form. Also serves `?from=<id>` to repeat a finished trip with its corrections applied. |
-| Inventory | `/inventory` | Your kit — a *view* over every trip, not a second database. What you carry, what comes home untouched, what you've retired. |
+| Inventory | `/inventory` | Your inventory. Things you list yourself (`kit` in storage) merged with everything trips reveal about what you actually pack, plus "What you took" per finished trip. |
 
 A trip (`/trips/[id]`) and its review belong to the Upcoming tab, since that's
 where you came from.
 
-**Inventory is derived, never stored.** `src/lib/inventory.ts` aggregates
-`trip.items` plus `trip.learned` across all trips. Don't add an owned-items
-model — it would go stale immediately and there'd be two sources of truth.
+**Inventory is mostly derived.** `src/lib/inventory.ts` aggregates `trip.items`
+plus `trip.learned` across all trips, then merges in `state.kit` — the things
+someone listed directly. Keep that split: trips remain the source of truth for
+what has been *packed*, and `kit` only adds what hasn't been packed yet.
+
+**Categories are open.** `ItemCategory` is a plain `string`; `KNOWN_CATEGORIES`
+holds the seven defaults and `categoriesPresent()` orders known-then-custom. Use
+`styleFor(category)` from `components/categoryStyle.ts` rather than indexing the
+map, so an invented category still gets a colour.
 
 ## Pictures
 
@@ -105,12 +110,20 @@ Next.js 16.4.2, React 19.3, Tailwind v4. Three things differ from older training
    initial state agrees with the DOM. Keep those two in sync — if you change the
    storage key, change it in both places.
 
-4. **Tailwind arbitrary values can't hold an inline SVG data URI.** The checkbox
+4. **Hand-written CSS must go in `@layer base`.** Tailwind v4 emits utilities
+   inside a cascade layer, and unlayered rules beat layered ones regardless of
+   specificity. A bare `a { text-decoration: underline }` in `globals.css`
+   therefore won against `no-underline` on *every* link, underlining the text
+   inside every button-styled link. Element defaults belong in `@layer base`;
+   only classes that must win (`.checkbox`, the `[data-when]` gate) stay
+   unlayered.
+
+5. **Tailwind arbitrary values can't hold an inline SVG data URI.** The checkbox
    tick was written as `bg-[url('data:image/svg+xml;utf8,<svg …>')]` and silently
    compiled to `background-image: none` — the angle brackets, hash and spaces
    don't survive. It lives in `globals.css` as `.checkbox:checked` instead. Note
-   also that editing `globals.css` sometimes needs a dev-server restart before
-   Turbopack serves the change.
+   also that editing `globals.css` reliably needs a dev-server restart before
+   Turbopack serves the change — budget for it rather than debugging a ghost.
 
 Generated route types are real: use `LayoutProps<"/">` and `PageProps<"/trips/[id]">`
 rather than hand-writing props.

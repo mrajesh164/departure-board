@@ -43,7 +43,7 @@ function Review() {
         <h1 className="font-display text-heading text-ink">
           That trip isn&apos;t here
         </h1>
-        <ButtonLink href="/" className="mt-5">
+        <ButtonLink href="/trips" className="mt-5">
           Back to the board
         </ButtonLink>
       </>
@@ -81,7 +81,7 @@ function Review() {
         add: [...new Set([...t.learned.add, ...wished])],
       },
     }));
-    router.push("/");
+    router.push("/trips");
   }
 
   const packedItems = trip.items.filter((i) => i.packed);
@@ -196,7 +196,7 @@ function Review() {
         <Button variant="primary" onClick={save}>
           Save and finish
         </Button>
-        <ButtonLink href="/" variant="quiet">
+        <ButtonLink href="/trips" variant="quiet">
           Skip for now
         </ButtonLink>
       </div>

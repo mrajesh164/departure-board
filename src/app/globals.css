@@ -86,23 +86,35 @@ body {
   max-width: 68ch;
 }
 
-/* Focus: 2px outline, offset 2px. Tomato on quiet controls… */
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-/* …espresso on the accent fill, so it stays visible against tomato. */
-.on-accent:focus-visible {
-  outline-color: var(--color-ink);
-}
+/* ---------------------------------------------------------------------------
+   Element defaults go in @layer base deliberately.
 
-/* Links are always underlined; accent on hover. */
-a {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-a:hover {
-  color: var(--color-accent);
+   Tailwind v4 emits its utilities inside a cascade layer, and unlayered rules
+   beat layered ones no matter the specificity. So a bare `a { text-decoration:
+   underline }` here silently won against `no-underline` on every single link —
+   which is exactly what it did, leaving underlines under the footer buttons.
+   Inside @layer base, utilities override these the way you'd expect.
+--------------------------------------------------------------------------- */
+
+@layer base {
+  /* Focus: 2px outline, offset 2px. Tomato on quiet controls… */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  /* …espresso on the accent fill, so it stays visible against tomato. */
+  .on-accent:focus-visible {
+    outline-color: var(--color-ink);
+  }
+
+  /* Links are underlined by default; buttons opt out with `no-underline`. */
+  a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  a:hover {
+    color: var(--color-accent);
+  }
 }
 
 /* A dotted leader, for manifest rows that run title ····· value */

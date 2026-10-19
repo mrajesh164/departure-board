@@ -145,7 +145,7 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
     <form onSubmit={submit} noValidate className="max-w-xl">
       {repeatOf && (
         <p className="mb-6 border-l-2 border-success bg-surface px-3 py-2 text-small text-ink">
-          Packing <strong>{repeatOf.name.toLowerCase()}</strong> again. Your
+          Packing <strong>{repeatOf.name}</strong> again. Your
           corrections from last time are already applied — just pick the new
           dates.
         </p>
@@ -308,7 +308,7 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
         <Button type="submit" variant="primary">
           Build the list
         </Button>
-        <Button variant="quiet" onClick={() => router.push("/")}>
+        <Button variant="quiet" onClick={() => router.push("/trips")}>
           Cancel
         </Button>
       </div>

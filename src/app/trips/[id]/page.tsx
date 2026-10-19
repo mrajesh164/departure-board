@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useTrips } from "@/app/providers";
 import { Button, ButtonLink } from "@/components/Button";
@@ -23,7 +22,7 @@ import {
   packedCount,
   phaseOf,
 } from "@/lib/trips";
-import { CATEGORY_ORDER } from "@/lib/types";
+import { categoriesPresent } from "@/lib/types";
 
 /**
  * The checklist. The core task, and the screen this app exists for.
@@ -90,7 +89,7 @@ function Checklist() {
           It may have been removed, or saved in a different browser — everything
           lives on the device you created it on.
         </p>
-        <ButtonLink href="/" className="mt-5">
+        <ButtonLink href="/trips" className="mt-5">
           Back to the board
         </ButtonLink>
       </>
@@ -191,7 +190,7 @@ function Checklist() {
 
       {/* --- the list --- */}
       <div className="mt-5">
-        {CATEGORY_ORDER.map((category) => (
+        {categoriesPresent(trip.items.map((i) => i.category)).map((category) => (
           <CategorySection
             key={category}
             category={category}
@@ -221,48 +220,59 @@ function Checklist() {
       <div className="mt-8 border-t-2 border-ink pt-5">
         <AddItemForm
           existingLabels={trip.items.map((i) => i.label)}
+          existingCategories={categoriesPresent(
+            trip.items.map((i) => i.category),
+          )}
           onAdd={(item) => addItem(trip.id, item)}
         />
       </div>
 
-      {/* --- housekeeping --- */}
-      <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-rule pt-4">
-        <Link href="/" className="text-small text-ink">
-          Back to the board
-        </Link>
+      {/* --- housekeeping ---
+          One row of matching secondary buttons rather than a line of underlined
+          links at different weights, which read as unrelated bits of text. The
+          destructive action sits apart, on the right. */}
+      <div className="mt-10 border-t border-rule pt-4">
+        <div className="flex flex-wrap items-start gap-3">
+          <ButtonLink href="/trips" variant="secondary">
+            Back to the board
+          </ButtonLink>
 
-        {phase !== "past" && <EditDates trip={trip} />}
+          {phase !== "past" && <EditDates trip={trip} />}
 
-        {phase !== "past" && !allPacked && (
-          <Button variant="quiet" onClick={finish}>
-            Mark this trip finished
-          </Button>
-        )}
-
-        <span className="ml-auto">
-          {confirmingDelete ? (
-            <span className="flex items-center gap-3">
-              <span className="text-small text-ink">Delete this trip?</span>
-              <Button
-                ref={confirmRef}
-                variant="danger"
-                onClick={() => {
-                  removeTrip(trip.id);
-                  router.push("/");
-                }}
-              >
-                Delete
-              </Button>
-              <Button variant="quiet" onClick={() => setConfirmingDelete(false)}>
-                Keep it
-              </Button>
-            </span>
-          ) : (
-            <Button variant="quiet" onClick={() => setConfirmingDelete(true)}>
-              Delete trip
+          {phase !== "past" && !allPacked && (
+            <Button variant="secondary" onClick={finish}>
+              Mark this trip finished
             </Button>
           )}
-        </span>
+
+          <span className="ml-auto">
+            {confirmingDelete ? (
+              <span className="flex flex-wrap items-center gap-3">
+                <span className="text-small text-ink">Delete this trip?</span>
+                <Button
+                  ref={confirmRef}
+                  variant="danger"
+                  onClick={() => {
+                    removeTrip(trip.id);
+                    router.push("/trips");
+                  }}
+                >
+                  Delete
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setConfirmingDelete(false)}
+                >
+                  Keep it
+                </Button>
+              </span>
+            ) : (
+              <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
+                Delete trip
+              </Button>
+            )}
+          </span>
+        </div>
       </div>
     </>
   );

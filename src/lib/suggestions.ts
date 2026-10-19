@@ -98,7 +98,7 @@ export function buildPackingList(
   }
   if (days >= 3) {
     specs.push({
-      label: "Pyjamas",
+      label: "Pajamas",
       category: "Clothing",
       source: "duration",
     });

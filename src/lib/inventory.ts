@@ -13,7 +13,7 @@
  * place.
  */
 
-import type { ItemCategory, Trip } from "./types";
+import type { ItemCategory, KitItem, Trip } from "./types";
 import { phaseOf } from "./trips";
 
 export type KitEntry = {
@@ -31,11 +31,15 @@ export type KitEntry = {
   dropped: boolean;
   /** You typed it in yourself rather than it being suggested. */
   yourOwn: boolean;
+  /** Listed in your inventory directly, whether or not it's been packed. */
+  owned: boolean;
+  /** Id of the inventory entry, when there is one — lets it be removed. */
+  kitId?: string;
   /** Most recent trip it appeared on. */
   lastSeenOn?: string;
 };
 
-export function buildInventory(trips: Trip[]): KitEntry[] {
+export function buildInventory(trips: Trip[], kit: KitItem[] = []): KitEntry[] {
   const byLabel = new Map<string, KitEntry>();
 
   const touch = (label: string, category: ItemCategory): KitEntry => {
@@ -51,6 +55,8 @@ export function buildInventory(trips: Trip[]): KitEntry[] {
         requested: false,
         dropped: false,
         yourOwn: false,
+        owned: false,
+        kitId: undefined,
         lastSeenOn: undefined,
       };
       byLabel.set(key, entry);
@@ -89,8 +95,18 @@ export function buildInventory(trips: Trip[]): KitEntry[] {
     }
   }
 
+  /* Things you listed yourself. These may never have been on a trip, so they
+     join the picture rather than being derived from it. */
+  for (const own of kit) {
+    const entry = touch(own.label, own.category);
+    entry.owned = true;
+    entry.kitId = own.id;
+    // A category you chose beats one inferred from a trip item.
+    entry.category = own.category;
+  }
+
   return [...byLabel.values()].sort(
-    (a, b) => b.onTrips - a.onTrips || a.label.localeCompare(b.label),
+    (a, b) => b.packedTimes - a.packedTimes || b.onTrips - a.onTrips || a.label.localeCompare(b.label),
   );
 }
 

@@ -18,7 +18,7 @@ import { usePathname } from "next/navigation";
  */
 
 const TABS = [
-  { href: "/", label: "Upcoming" },
+  { href: "/trips", label: "Upcoming" },
   { href: "/trips/new", label: "New trip" },
   { href: "/inventory", label: "Inventory" },
 ] as const;
@@ -52,7 +52,9 @@ function Tabs() {
       ? "/trips/new"
       : pathname.startsWith("/inventory")
         ? "/inventory"
-        : "/";
+        : pathname.startsWith("/trips")
+          ? "/trips"
+          : null;
 
   return <TabList active={active} />;
 }
