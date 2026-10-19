@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   Café Terrace — design tokens (carried over from Assignment 2)
+   "Parchment and pressed ink under a red awning. Printed, unhurried, worn at
+   the corners."
+
+   Tailwind v4 has no tailwind.config.js: declaring a token here generates the
+   utility. --color-accent gives you bg-accent, text-accent, border-accent.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* --- color roles --- */
+  --color-background: #e8dcc5; /* the page itself */
+  --color-surface: #f6efe3; /* cards, inputs, panels */
+  --color-surface-raised: #eae2d7; /* hover fill on quiet controls */
+  --color-selected: #edd8cc; /* chosen rows and chips */
+  --color-ink: #2b1d16; /* headings and body */
+  --color-muted: #685c54; /* captions, meta, placeholders */
+  --color-rule: #c3bab0; /* dividers and plate rules */
+  --color-rule-strong: #90867c; /* input and control edges */
+  --color-accent: #ae3220; /* primary action ONLY */
+  --color-success: #41662f; /* confirmation */
+  --color-error: #7b1e2b; /* failure and destructive */
+  --color-warning: #7a4f10; /* caution */
+
+  /* --- type --- */
+  --font-display: var(--font-fraunces), "Georgia", "Times New Roman", serif;
+  --font-sans: var(--font-source-sans), "Helvetica Neue", Arial, sans-serif;
+
+  --text-display: 3.5rem; /* 56 */
+  --text-display--line-height: 3.25rem; /* 52 */
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 600;
+
+  --text-heading: 1.75rem; /* 28 */
+  --text-heading--line-height: 2.125rem; /* 34 */
+  --text-heading--font-weight: 600;
+
+  --text-subhead: 1.25rem; /* 20 */
+  --text-subhead--line-height: 1.75rem; /* 28 */
+  --text-subhead--font-weight: 600;
+
+  --text-body: 1rem; /* 16 */
+  --text-body--line-height: 1.625rem; /* 26 */
+
+  --text-small: 0.875rem; /* 14 */
+  --text-small--line-height: 1.375rem; /* 22 */
+
+  --text-label: 0.6875rem; /* 11 */
+  --text-label--line-height: 1rem; /* 16 */
+  --text-label--letter-spacing: 0.14em;
+  --text-label--font-weight: 600;
+
+  /* --- shape: border radius is 0. Controls may use 2px. Nothing rounder. --- */
+  --radius-none: 0px;
+  --radius-control: 2px;
+
+  /* --- shadows: hard offset, NO blur --- */
+  --shadow-raised: 2px 2px 0 0 #2b1d16;
+  --shadow-lifted: 4px 4px 0 0 #2b1d16;
+
+  /* --- spacing: 4px base --- */
+  --spacing: 0.25rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-background);
+  /* The parchment should fill the viewport even past the content. */
+  color: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Body copy caps at 68 characters per the type spec. */
+.measure {
+  max-width: 68ch;
+}
+
+/* Focus: 2px outline, offset 2px. Tomato on quiet controls… */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+/* …espresso on the accent fill, so it stays visible against tomato. */
+.on-accent:focus-visible {
+  outline-color: var(--color-ink);
+}
+
+/* Links are always underlined; accent on hover. */
+a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--color-accent);
+}
+
+/* A dotted leader, for manifest rows that run title ····· value */
+.leader {
+  border-bottom: 1px dotted var(--color-rule-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   First-visit vs returning.
+
+   An inline script in <head> sets data-has-trips on <html> while the HTML is
+   still parsing, so a returning person never sees the first-visit screen flash
+   past before React hydrates. See
+   node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md
+--------------------------------------------------------------------------- */
+
+html[data-has-trips="yes"] [data-when="first-visit"] {
+  display: none;
+}
+html[data-has-trips="no"] [data-when="returning"] {
+  display: none;
+}
+
+/* Respect a reduced-motion preference for the one transition we use. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
