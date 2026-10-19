@@ -3,85 +3,80 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTrips } from "@/app/providers";
 
 /**
- * The masthead, shared by every route.
+ * The masthead: a wordmark that's always home, and three tabs that say what
+ * this thing is for.
  *
- * It answers "where am I and how do I get back" — the brief's navigation
- * requirement — with a wordmark that's always home plus a breadcrumb naming the
- * trip you're inside. The trip name is read from the one provider, so it can't
- * disagree with the page below it.
+ * The tabs carry the navigation requirement — it's clear where you are and how
+ * to get back — and they give the app a readable shape: the trips you have,
+ * adding one, and everything the tool has learned about what you pack.
  *
- * The breadcrumb sits behind its own Suspense boundary because `usePathname`
- * suspends on /trips/[id], whose param isn't known at build time. Without the
- * boundary that one hook would block prerendering of the entire layout; with it,
- * the masthead is prerendered and only the breadcrumb streams in.
+ * Tabs sit behind a Suspense boundary because `usePathname` suspends on
+ * /trips/[id], whose param isn't known at build time. Without it, that one hook
+ * would drag the whole layout out of prerendering.
  */
+
+const TABS = [
+  { href: "/", label: "Upcoming" },
+  { href: "/trips/new", label: "New trip" },
+  { href: "/inventory", label: "Inventory" },
+] as const;
 
 export function Nav() {
   return (
     <header className="border-b-2 border-ink bg-background">
-      <div className="mx-auto flex max-w-3xl items-baseline gap-3 px-5 py-4">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 pt-4">
         <Link
           href="/"
-          className="font-display text-subhead font-semibold tracking-tight text-ink no-underline hover:text-accent"
+          className="mb-3 font-display text-subhead font-semibold tracking-tight text-ink no-underline hover:text-accent"
         >
           The Departure Board
         </Link>
 
-        <Suspense fallback={null}>
-          <Breadcrumb />
+        <Suspense fallback={<TabList active={null} />}>
+          <Tabs />
         </Suspense>
       </div>
     </header>
   );
 }
 
-function Breadcrumb() {
+function Tabs() {
   const pathname = usePathname();
-  const { trips } = useTrips();
 
-  const tripId = /^\/trips\/([^/]+)/.exec(pathname)?.[1];
-  const trip = tripId ? trips.find((t) => t.id === tripId) : undefined;
+  /* A trip or its review belongs to Upcoming — you got there from the board,
+     so that's the section you're in. */
+  const active =
+    pathname === "/trips/new"
+      ? "/trips/new"
+      : pathname.startsWith("/inventory")
+        ? "/inventory"
+        : "/";
 
-  const onNew = pathname === "/trips/new";
-  const onReview = pathname.endsWith("/review");
+  return <TabList active={active} />;
+}
 
-  if (!trip && !onNew) return null;
-
+function TabList({ active }: { active: string | null }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-baseline gap-2 text-small">
-      <Separator />
-      {onNew ? (
-        <Current>A new trip</Current>
-      ) : trip && onReview ? (
-        <>
-          <Link href={`/trips/${trip.id}`} className="text-muted">
-            {trip.name}
+    <nav aria-label="Sections" className="-mb-0.5 flex gap-1">
+      {TABS.map((tab) => {
+        const selected = active === tab.href;
+        return (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            aria-current={selected ? "page" : undefined}
+            className={`border-b-[3px] px-3 pb-2.5 pt-1 font-sans text-small no-underline ${
+              selected
+                ? "border-accent font-semibold text-ink"
+                : "border-transparent text-muted hover:text-ink"
+            }`}
+          >
+            {tab.label}
           </Link>
-          <Separator />
-          <Current>Review</Current>
-        </>
-      ) : trip ? (
-        <Current>{trip.name}</Current>
-      ) : null}
+        );
+      })}
     </nav>
-  );
-}
-
-function Separator() {
-  return (
-    <span aria-hidden="true" className="text-rule-strong">
-      /
-    </span>
-  );
-}
-
-function Current({ children }: { children: React.ReactNode }) {
-  return (
-    <span aria-current="page" className="text-muted">
-      {children}
-    </span>
   );
 }

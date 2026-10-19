@@ -6,10 +6,13 @@ import { useTrips } from "./providers";
 import { Button, ButtonLink } from "@/components/Button";
 import { Badge, Card, Label, SectionRule } from "@/components/Card";
 import { PackProgress } from "@/components/PackProgress";
-import { YourData } from "@/components/YourData";
+import { DestinationArt } from "@/components/DestinationArt";
 import { STARTERS, createStarterTrip, starterDates } from "@/lib/starters";
+import { conditionsFor, findClimate } from "@/lib/climate";
+import { monthsSpanned } from "@/lib/suggestions";
 import {
   awaitingReview,
+  conditionsOf,
   countdownLabel,
   formatDateRange,
   lengthOf,
@@ -79,25 +82,46 @@ function FirstVisit() {
       <ul className="mt-3 grid gap-3 sm:grid-cols-3">
         {STARTERS.map((starter) => {
           const { startDate, endDate } = starterDates(starter);
+          const climate = findClimate(starter.climateSlug);
+          const conditions = climate
+            ? conditionsFor(climate, monthsSpanned(startDate, endDate))
+            : undefined;
+
           return (
-            <Card as="li" key={starter.key} className="flex flex-col">
-              <h2 className="font-display text-subhead text-ink">
-                {starter.name}
-              </h2>
-              <p className="mt-1 flex-1 text-small text-muted">
-                {starter.blurb}
-              </p>
-              <p className="mt-3 font-sans text-label uppercase text-muted">
-                {formatDateRange(startDate, endDate)} · {starter.destination}
-              </p>
-              <Button
-                variant="primary"
-                className="mt-3 w-full"
-                onClick={() => adopt(starter.key)}
-              >
-                Build this list
-              </Button>
-            </Card>
+            <li
+              key={starter.key}
+              className="flex flex-col border border-rule bg-surface"
+            >
+              {conditions && (
+                <DestinationArt
+                  seed={starter.destination}
+                  slug={starter.climateSlug}
+                  city={starter.destination}
+                  conditions={conditions}
+                  height={96}
+                  className="border-0 border-b border-rule-strong"
+                />
+              )}
+
+              <div className="flex flex-1 flex-col p-4">
+                <h2 className="font-display text-subhead text-ink">
+                  {starter.name}
+                </h2>
+                <p className="mt-1 flex-1 text-small text-muted">
+                  {starter.blurb}
+                </p>
+                <p className="mt-3 font-sans text-label uppercase text-muted">
+                  {formatDateRange(startDate, endDate)} · {starter.destination}
+                </p>
+                <Button
+                  variant="primary"
+                  className="mt-3 w-full"
+                  onClick={() => adopt(starter.key)}
+                >
+                  Build this list
+                </Button>
+              </div>
+            </li>
           );
         })}
       </ul>
@@ -158,10 +182,7 @@ function TheBoard({ trips }: { trips: Trip[] }) {
             Two questions about how that trip went, and the next one packs
             itself better.
           </p>
-          <ButtonLink
-            href={`/trips/${needsReview.id}/review`}
-            className="mt-3"
-          >
+          <ButtonLink href={`/trips/${needsReview.id}/review`} className="mt-3">
             Review {needsReview.name.toLowerCase()}
           </ButtonLink>
         </Card>
@@ -180,8 +201,6 @@ function TheBoard({ trips }: { trips: Trip[] }) {
           </ul>
         </>
       )}
-
-      <YourData />
     </div>
   );
 }
@@ -189,65 +208,93 @@ function TheBoard({ trips }: { trips: Trip[] }) {
 function LeadDeparture({ trip }: { trip: Trip }) {
   const { packed, total } = packedCount(trip.items);
   const left = total - packed;
+  const conditions = conditionsOf(trip);
 
   return (
-    <Card className="mt-4 shadow-raised">
-      <div className="flex items-baseline justify-between gap-4">
-        <Label>{countdownLabel(trip)}</Label>
-        {total > 0 && (
-          <Label>
-            {left === 0 ? "Packed" : `${left} left to pack`}
-          </Label>
-        )}
-      </div>
-
-      <h2 className="mt-1 font-display text-heading text-ink">
-        <Link href={`/trips/${trip.id}`} className="text-ink no-underline hover:text-accent">
-          {trip.name}
-        </Link>
-      </h2>
-
-      <p className="mt-0.5 text-small text-muted">
-        {trip.destination} · {formatDateRange(trip.startDate, trip.endDate)} ·{" "}
-        {lengthOf(trip)} days
-      </p>
-
-      {total > 0 && (
-        <PackProgress packed={packed} total={total} className="mt-4" />
+    <div className="mt-4 border border-rule bg-surface shadow-raised">
+      {conditions && (
+        <DestinationArt
+          seed={trip.destination}
+          slug={trip.climateSlug}
+          city={trip.destination}
+          conditions={conditions}
+          height={132}
+          className="border-0 border-b border-rule-strong"
+        />
       )}
 
-      <ButtonLink
-        href={`/trips/${trip.id}`}
-        variant={left === 0 ? "secondary" : "primary"}
-        className="mt-4"
-      >
-        {packed === 0
-          ? "Start packing"
-          : left === 0
-            ? "Everything's packed"
-            : "Carry on packing"}
-      </ButtonLink>
-    </Card>
+      <div className="p-5">
+        <div className="flex items-baseline justify-between gap-4">
+          <Label>{countdownLabel(trip)}</Label>
+          {total > 0 && (
+            <Label>{left === 0 ? "Packed" : `${left} left to pack`}</Label>
+          )}
+        </div>
+
+        <h2 className="mt-1 font-display text-heading text-ink">
+          <Link
+            href={`/trips/${trip.id}`}
+            className="text-ink no-underline hover:text-accent"
+          >
+            {trip.name}
+          </Link>
+        </h2>
+
+        <p className="mt-0.5 text-small text-muted">
+          {trip.destination} · {formatDateRange(trip.startDate, trip.endDate)} ·{" "}
+          {lengthOf(trip)} days
+        </p>
+
+        {total > 0 && (
+          <PackProgress packed={packed} total={total} className="mt-4" />
+        )}
+
+        <ButtonLink
+          href={`/trips/${trip.id}`}
+          variant={left === 0 ? "secondary" : "primary"}
+          className="mt-4"
+        >
+          {packed === 0
+            ? "Start packing"
+            : left === 0
+              ? "Everything's packed"
+              : "Carry on packing"}
+        </ButtonLink>
+      </div>
+    </div>
   );
 }
 
 function TripRow({ trip, past = false }: { trip: Trip; past?: boolean }) {
   const { packed, total } = packedCount(trip.items);
+  const conditions = conditionsOf(trip);
 
   return (
-    <li className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-rule py-3 last:border-b-0">
-      <Link
-        href={`/trips/${trip.id}`}
-        className="font-display text-subhead text-ink no-underline hover:text-accent"
-      >
-        {trip.name}
-      </Link>
+    <li className="flex items-center gap-4 border-b border-rule py-3 last:border-b-0">
+      {conditions && (
+        <DestinationArt
+          seed={trip.destination}
+          slug={trip.climateSlug}
+          city={trip.destination}
+          conditions={conditions}
+          height={52}
+          className="hidden w-20 shrink-0 sm:block"
+        />
+      )}
 
-      <span className="text-small text-muted">
-        {trip.destination} · {formatDateRange(trip.startDate, trip.endDate)}
-      </span>
+      <div className="min-w-0 flex-1">
+        <Link
+          href={`/trips/${trip.id}`}
+          className="font-display text-subhead text-ink no-underline hover:text-accent"
+        >
+          {trip.name}
+        </Link>
+        <p className="text-small text-muted">
+          {trip.destination} · {formatDateRange(trip.startDate, trip.endDate)}
+        </p>
+      </div>
 
-      <span className="ml-auto flex items-center gap-3">
+      <span className="flex shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-1">
         {!past && total > 0 && packed < total && (
           <span className="text-small text-muted">{total - packed} left</span>
         )}

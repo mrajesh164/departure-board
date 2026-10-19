@@ -33,11 +33,42 @@ by reading a tour.
 
 > I add a trip → the board builds its packing list from the dates and the destination → I check things off as I pack → I come back next time and it's already corrected from last trip.
 
-**3. Coming back** — two reasons, kept deliberately simple:
+**3. Coming back** — three reasons, on three clocks:
+- *Mid-pack:* packing happens over several evenings, so a part-packed list is a
+  standing invitation to come back and finish it.
 - *Before the trip:* the board leads with the next departure and what's still unpacked ("Lisbon, in 3 days — 7 items left").
 - *After the trip:* a short review marks what you never used and what you wished
   you'd brought. Those corrections are applied the next time you pack that trip.
   The list measurably improves each time you return.
+
+## Shape of the app
+
+Three tabs in the masthead, which is what gives the tool a legible purpose:
+
+| Tab | Route | What it is |
+|---|---|---|
+| Upcoming | `/` | The board. Starters on a true first visit; otherwise the next departure leads, with finished trips below a 2px rule and "Pack this again" on each. |
+| New trip | `/trips/new` | The form. Also serves `?from=<id>` to repeat a finished trip with its corrections applied. |
+| Inventory | `/inventory` | Your kit — a *view* over every trip, not a second database. What you carry, what comes home untouched, what you've retired. |
+
+A trip (`/trips/[id]`) and its review belong to the Upcoming tab, since that's
+where you came from.
+
+**Inventory is derived, never stored.** `src/lib/inventory.ts` aggregates
+`trip.items` plus `trip.learned` across all trips. Don't add an owned-items
+model — it would go stale immediately and there'd be two sources of truth.
+
+## Pictures
+
+`src/lib/photos.ts` holds one Wikimedia CDN thumbnail per destination slug. Those
+URLs were resolved once by hand from Wikipedia's page-summary endpoint and each
+verified to return 200; **the running app never calls an API**. Requesting widths
+above the stored thumbnail returns 400, so don't rewrite the `NNNpx-` segment.
+
+`DestinationArt` falls back to a generated SVG poster when there's no photo for a
+destination, or when the image fails to load. The poster is drawn *from the
+climate data* — sun height, palette and rain density all come from the month's
+conditions — so an unknown destination still gets a picture that means something.
 
 ## Hard constraints
 
@@ -73,6 +104,13 @@ Next.js 16.4.2, React 19.3, Tailwind v4. Three things differ from older training
    and the provider's `useState` lazy initializer reads the *same* key so React's
    initial state agrees with the DOM. Keep those two in sync — if you change the
    storage key, change it in both places.
+
+4. **Tailwind arbitrary values can't hold an inline SVG data URI.** The checkbox
+   tick was written as `bg-[url('data:image/svg+xml;utf8,<svg …>')]` and silently
+   compiled to `background-image: none` — the angle brackets, hash and spaces
+   don't survive. It lives in `globals.css` as `.checkbox:checked` instead. Note
+   also that editing `globals.css` sometimes needs a dev-server restart before
+   Turbopack serves the change.
 
 Generated route types are real: use `LayoutProps<"/">` and `PageProps<"/trips/[id]">`
 rather than hand-writing props.
@@ -112,6 +150,11 @@ Shape and rules — these are what make it look printed, so hold the line:
   rule on a selected tab.
 - Focus outline 2px, offset 2px — tomato on quiet controls, espresso on accent fill.
 - Spacing is a 4px scale: 4, 8, 12, 16, 24, 32, 48, 64.
+
+**Category colours** live in `src/components/categoryStyle.ts` — one muted pigment
+per packing category (slate, rust, olive, leather, pine, graphite, ochre). They're
+there so a 24-item list can be scanned by section. None of them come near the
+accent, which still belongs to the primary action alone.
 
 Component rules: primary button is the only accent fill and shifts down 1px when
 pressed; secondary never uses accent; links are always underlined. Checkbox is

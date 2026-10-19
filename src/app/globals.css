@@ -135,3 +135,19 @@ html[data-has-trips="no"] [data-when="returning"] {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   The square checkbox.
+
+   The tick lives here rather than in a Tailwind arbitrary value: an inline SVG
+   data URI has angle brackets, a hash and spaces in it, none of which survive
+   `bg-[url(...)]` — it silently compiled to `background-image: none`, so a
+   checked box rendered as a solid block with no tick at all.
+--------------------------------------------------------------------------- */
+
+.checkbox:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.5 3.5L13 5' fill='none' stroke='%23F6EFE3' stroke-width='2.5' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+}

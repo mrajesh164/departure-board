@@ -13,6 +13,7 @@ import { PackCount, PackProgress } from "@/components/PackProgress";
 import { MONTHS } from "@/lib/climate";
 import { ConditionsNote } from "@/components/ConditionsNote";
 import { EditDates } from "@/components/EditDates";
+import { DestinationArt } from "@/components/DestinationArt";
 import { monthsSpanned } from "@/lib/suggestions";
 import {
   conditionsOf,
@@ -119,6 +120,17 @@ function Checklist() {
   return (
     <>
       {/* --- header --- */}
+      {conditions && (
+        <DestinationArt
+          seed={trip.destination}
+          slug={trip.climateSlug}
+          city={trip.destination}
+          conditions={conditions}
+          height={150}
+          className="mb-5"
+        />
+      )}
+
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <Label>{countdownLabel(trip)}</Label>
         <Label>
