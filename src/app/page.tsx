@@ -80,10 +80,13 @@ export default function HomePage() {
 function FirstVisit() {
   return (
     <div data-when="first-visit">
+      {/* A greeting rather than a wordmark: the masthead already carries the
+          name, and this is the one line that gets to speak to a person who has
+          just arrived. */}
       <h1 className="font-display text-display text-ink">
-        The Departure
+        Welcome to
         <br />
-        Board
+        The Departure Board
       </h1>
 
       {/* One line, then straight into the thing itself.
@@ -127,7 +130,7 @@ function Returning({ trips }: { trips: Trip[] }) {
   return (
     <div data-when="returning">
       <section className="border-b-2 border-ink pb-8">
-        <h1 className="font-display text-display text-ink">Welcome back.</h1>
+        <h1 className="font-display text-display text-ink">Welcome Back.</h1>
 
         <p className="measure mt-4 text-body text-ink">
           {summarise({ trips: trips.length, finished, kit: kit.length, corrections })}
