@@ -97,7 +97,7 @@ function FirstVisit() {
           count and the weather it reasoned from. Reading that is learning by
           doing; reading a paragraph about it is not. */}
       <p className="measure mt-4 text-subhead font-semibold text-ink">
-        Packing lists that build themselves.
+        Packing lists for your favorite destinations.
       </p>
 
       <div className="mt-8">
