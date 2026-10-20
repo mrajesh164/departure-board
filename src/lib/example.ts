@@ -83,12 +83,16 @@ export function exampleHighlights(trip: Trip): Item[] {
 }
 
 /** Dismissing the card is remembered, so it doesn't nag on every visit. */
-const DISMISS_KEY = "departure-board.example-dismissed";
+const DISMISS_KEY = "wanderlist.example-dismissed";
+const LEGACY_DISMISS_KEY = "departure-board.example-dismissed";
 
 export function exampleDismissed(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return window.localStorage.getItem(DISMISS_KEY) === "1";
+    return (
+      window.localStorage.getItem(DISMISS_KEY) === "1" ||
+      window.localStorage.getItem(LEGACY_DISMISS_KEY) === "1"
+    );
   } catch {
     return false;
   }

@@ -13,19 +13,32 @@
 
 import { EMPTY_STATE, type KitItem, type StoredState, type Trip } from "./types";
 
-/*
- * The key keeps the old name on purpose. The app was called The Departure Board
- * before it was Wanderlist, and renaming the key would orphan every trip anyone
- * has already saved — there's no server to migrate them from.
+export const STORAGE_KEY = "wanderlist.v1";
+
+/**
+ * The key the app used when it was called The Departure Board.
+ *
+ * Anyone who saved trips before the rename has them under this. There's no
+ * server to migrate from, so the migration happens on the device: the first
+ * read that finds the old key and not the new one copies it forward. The old
+ * key is left in place rather than deleted — it costs nothing, and it means a
+ * half-finished migration can't lose anything.
  */
-export const STORAGE_KEY = "departure-board.v1";
+export const LEGACY_STORAGE_KEY = "departure-board.v1";
 
 /**
  * Runs synchronously in <head> while the HTML is still parsing, so the correct
  * screen is in the DOM before anything is painted.
+ *
+ * It has to check the legacy key too. On the very first load after the rename
+ * the data is still under the old name, and a script that only looked at the
+ * new one would report "no trips" and flash the first visit at someone who has
+ * six.
  */
 export const HAS_TRIPS_SCRIPT = `(function(){try{var raw=localStorage.getItem(${JSON.stringify(
   STORAGE_KEY,
+)})||localStorage.getItem(${JSON.stringify(
+  LEGACY_STORAGE_KEY,
 )});var s=raw?JSON.parse(raw):null;var n=s&&Array.isArray(s.trips)?s.trips.length:0;document.documentElement.setAttribute("data-has-trips",n>0?"yes":"no")}catch(e){document.documentElement.setAttribute("data-has-trips","no")}})()`;
 
 function isTrip(value: unknown): value is Trip {
@@ -67,7 +80,14 @@ function isKitItem(value: unknown): value is KitItem {
 export function readState(): StoredState {
   if (typeof window === "undefined") return EMPTY_STATE;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    /* Fall back to the pre-rename key, then write forward so it only happens
+       once. See LEGACY_STORAGE_KEY. */
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+    let migrating = false;
+    if (!raw) {
+      raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      migrating = raw !== null;
+    }
     if (!raw) return EMPTY_STATE;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return EMPTY_STATE;
@@ -77,7 +97,7 @@ export function readState(): StoredState {
     // `kit` arrived after the first release, so treat it as optional on read.
     const kit = (parsed as StoredState).kit;
 
-    return {
+    const state: StoredState = {
       version: 1,
       trips: trips.filter(isTrip).map((t) => ({
         ...t,
@@ -90,6 +110,9 @@ export function readState(): StoredState {
       })),
       kit: Array.isArray(kit) ? kit.filter(isKitItem) : [],
     };
+
+    if (migrating) writeState(state);
+    return state;
   } catch {
     return EMPTY_STATE;
   }

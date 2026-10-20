@@ -63,19 +63,23 @@ function Checklist() {
 
   /* "Hide what's packed" survives a reload, so reopening mid-pack lands you back
      in the same view rather than at the top of a list you'd already narrowed. */
-  const filterKey = `departure-board.filter.${id}`;
+  const filterKey = `wanderlist.filter.${id}`;
+  const legacyFilterKey = `departure-board.filter.${id}`;
   const [hidePacked, setHidePacked] = useState(false);
   /* Same constraint as the provider: this value only exists on the client, so
      it can't be a lazy initializer without desynchronising from the server
      render. Reading it in an effect is the correct trade here. */
   useEffect(() => {
     try {
+      // Falls back to the pre-rename key; see LEGACY_STORAGE_KEY in lib/storage.
+      const saved =
+        localStorage.getItem(filterKey) ?? localStorage.getItem(legacyFilterKey);
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setHidePacked(localStorage.getItem(filterKey) === "1");
+      setHidePacked(saved === "1");
     } catch {
       /* private browsing — the default is fine */
     }
-  }, [filterKey]);
+  }, [filterKey, legacyFilterKey]);
 
   function toggleFilter(next: boolean) {
     setHidePacked(next);
