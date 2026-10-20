@@ -58,12 +58,35 @@ function TheBoard({ trips }: { trips: Trip[] }) {
 
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-4">
-        <h1 className="font-display text-heading text-ink">Upcoming Trips</h1>
-        <ButtonLink href="/trips/new" variant="primary">
-          Add a trip
-        </ButtonLink>
-      </div>
+      {/* With nothing saved, the empty condition *is* the headline — a small
+          grey line under a "Upcoming Trips" heading read as a loading state. */}
+      {trips.length === 0 ? (
+        <>
+          <h1 className="font-display text-display text-ink">
+            No upcoming
+            <br />
+            trips.
+          </h1>
+          <p className="measure mt-4 text-body text-ink">
+            Start one below, or plan a specific trip from scratch.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <ButtonLink href="/trips/new" variant="primary">
+              Plan a new trip
+            </ButtonLink>
+            <ButtonLink href="/" variant="secondary">
+              Back to the start
+            </ButtonLink>
+          </div>
+        </>
+      ) : (
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 className="font-display text-heading text-ink">Upcoming Trips</h1>
+          <ButtonLink href="/trips/new" variant="primary">
+            Add a trip
+          </ButtonLink>
+        </div>
+      )}
 
       {/* The lead: whatever needs attention soonest, with its progress. This is
           the pre-trip reason to come back. */}
@@ -77,18 +100,11 @@ function TheBoard({ trips }: { trips: Trip[] }) {
         </ul>
       )}
 
-      {/* Never a dead end: with nothing saved at all, the board says so plainly
-          and then offers the same ready-made trips the front door does. Leaving
-          the heading sitting above empty space told a new person nothing. */}
+      {/* Never a dead end: the same ready-made trips the front door offers. */}
       {trips.length === 0 && (
-        <>
-          <p className="measure mt-3 text-body text-ink">
-            No upcoming trips yet.
-          </p>
-          <div className="mt-6 border-t-2 border-ink pt-6">
-            <StarterTrips />
-          </div>
-        </>
+        <div className="mt-8 border-t-2 border-ink pt-6">
+          <StarterTrips />
+        </div>
       )}
 
       {trips.length > 0 && departures.length === 0 && (
