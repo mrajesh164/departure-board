@@ -47,14 +47,14 @@ flowchart TD
 ```
 
 **First visit.** Nothing is saved, so there is nothing to show — which is exactly the dead
-end the brief warns about. Instead the front door offers two equal options: pick one of
-three ready-made trips, or plan your own. One tap on a starter creates a real trip with
-real dates and a real packing list, before a single field is filled in.
+end the brief warns about. Instead the front door offers three ready-made trips, and one
+tap creates a real trip with real dates and a real packing list. Value arrives before a
+single field is filled in.
 
-A four-step walkthrough then carries the rest of the loop using *that* trip — build, pack,
-review, see what it learned. Each step links to where it happens and is ticked from data
-that already exists, so it can't claim a step is done when it isn't. Finishing offers to
-delete the practice trip.
+Below them sits a worked example: a trip already packed twice, with its corrections shown
+inline — laundry sheets marked "you added this last time", a sun hat struck through as
+never used. That carries the part a first visit otherwise can't, since the loop takes two
+trips to happen. A two-step strip across the top points at both halves.
 
 **Coming back** happens on three clocks. Mid-pack, because packing takes several evenings
 and a part-packed list is an invitation to finish it. Before the trip, because the board

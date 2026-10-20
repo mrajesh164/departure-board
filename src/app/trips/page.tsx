@@ -235,7 +235,7 @@ function TripRow({ trip, past = false }: { trip: Trip; past?: boolean }) {
         {!past && total > 0 && packed < total && (
           <span className="text-small text-muted">{total - packed} left</span>
         )}
-        {trip.isOnboarding && <Badge tone="warning">Example</Badge>}
+        {trip.isExample && <Badge tone="warning">Example</Badge>}
         {!past && total > 0 && packed === total && (
           <Badge tone="success">Packed</Badge>
         )}

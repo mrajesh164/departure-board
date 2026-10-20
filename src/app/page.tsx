@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useTrips } from "./providers";
 import { ButtonLink } from "@/components/Button";
 import { Label } from "@/components/Card";
 import { StarterTrips } from "@/components/StarterTrips";
-import { OnboardingSteps } from "@/components/OnboardingSteps";
 import { DESTINATION_PHOTOS } from "@/lib/photos";
 import {
   countdownLabel,
@@ -14,12 +12,6 @@ import {
   packedCount,
   phaseOf,
 } from "@/lib/trips";
-import {
-  inventorySeen,
-  onboardingSteps,
-  showWalkthrough,
-  walkthroughDismissed,
-} from "@/lib/onboarding";
 import type { Trip } from "@/lib/types";
 
 /**
@@ -70,23 +62,7 @@ const SECTIONS = [
 ] as const;
 
 export default function HomePage() {
-  const { trips, kit, ready } = useTrips();
-
-  /* Dismissal is held in state as well as storage so the panel disappears on
-     click rather than on the next navigation. */
-  const [dismissed, setDismissed] = useState(false);
-
-  /* Read per render rather than cached: these only change on another route, and
-     a stale value would claim a step wasn't done when it was. */
-  const seenInventory = ready ? inventorySeen() : false;
-  const steps = onboardingSteps({ trips, kit }, seenInventory);
-  const walkthrough =
-    ready &&
-    showWalkthrough(
-      { trips, kit },
-      seenInventory,
-      dismissed || walkthroughDismissed(),
-    );
+  const { trips, ready } = useTrips();
 
   if (!ready) {
     // A quiet placeholder rather than the empty state — showing "nothing saved"
@@ -94,24 +70,7 @@ export default function HomePage() {
     return <div aria-hidden="true" className="h-64" />;
   }
 
-  return (
-    <>
-      {trips.length === 0 ? (
-        <FirstVisit />
-      ) : (
-        <Returning trips={trips} />
-      )}
-
-      {/* The walkthrough sits under both faces: on the first visit it's a map
-          of what's coming, and afterwards it's the thing driving them through
-          the rest of the loop. */}
-      {walkthrough && (
-        <div className="mt-10">
-          <OnboardingSteps steps={steps} onDismiss={() => setDismissed(true)} />
-        </div>
-      )}
-    </>
-  );
+  return trips.length === 0 ? <FirstVisit /> : <Returning trips={trips} />;
 }
 
 /* ------------------------------------------------------------------ */

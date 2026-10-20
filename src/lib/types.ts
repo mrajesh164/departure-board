@@ -85,11 +85,11 @@ export type Trip = {
   completedAt?: string;
   review?: TripReview;
   /**
-   * Set on the very first trip someone creates. It's an ordinary trip in every
-   * respect — the flag only lets the walkthrough know which one it's about, and
-   * lets it be deleted in one action once they've been through the loop.
+   * True only for the worked example offered on the first visit. It's real data
+   * in every other respect — it just gets labelled so nobody mistakes it for
+   * something they created, and so it can be removed in one action.
    */
-  isOnboarding?: boolean;
+  isExample?: boolean;
   /**
    * Corrections carried forward from every past run of this trip. This is the
    * "it remembers" part: pack it again and the list starts already fixed.

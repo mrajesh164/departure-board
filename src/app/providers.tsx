@@ -80,16 +80,16 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
     writeState(next);
   }, []);
 
-  const addTrip = useCallback((trip: Trip) => {
-    setState((prev) => {
-      /* The first trip anyone makes is the one the walkthrough is about. */
-      const tagged =
-        prev.trips.length === 0 ? { ...trip, isOnboarding: true } : trip;
-      const next = { ...prev, trips: [...prev.trips, tagged] };
-      writeState(next);
-      return next;
-    });
-  }, []);
+  const addTrip = useCallback(
+    (trip: Trip) => {
+      setState((prev) => {
+        const next = { ...prev, trips: [...prev.trips, trip] };
+        writeState(next);
+        return next;
+      });
+    },
+    [],
+  );
 
   const updateTrip = useCallback((id: string, patch: (trip: Trip) => Trip) => {
     setState((prev) => {

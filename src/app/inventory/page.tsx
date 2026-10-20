@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTrips } from "@/app/providers";
 import { Badge, Label, SectionRule } from "@/components/Card";
@@ -9,7 +9,6 @@ import { QuietAction, SegmentedControl } from "@/components/Controls";
 import { styleFor } from "@/components/categoryStyle";
 import { categoriesPresent, type ItemCategory } from "@/lib/types";
 import { buildInventory, type KitEntry } from "@/lib/inventory";
-import { markInventorySeen } from "@/lib/onboarding";
 import { formatDateRange, phaseOf, sortForBoard } from "@/lib/trips";
 
 /**
@@ -30,11 +29,6 @@ export default function InventoryPage() {
   /* Guarded on `ready` because these reach phaseOf -> todayISO -> new Date(),
      and Cache Components refuses to bake a prerender-time clock reading into
      static HTML. `ready` is false during prerender, so nothing calls Date. */
-  /* Seeing this page is the last walkthrough step, so record it. */
-  useEffect(() => {
-    if (ready) markInventorySeen();
-  }, [ready]);
-
   const entries = useMemo(
     () => (ready ? buildInventory(trips, kit) : []),
     [ready, trips, kit],
