@@ -20,12 +20,13 @@ import {
 import type { Trip } from "@/lib/types";
 
 /**
- * The board. Two faces: the first visit, and coming back.
+ * The board.
  *
- * Which one shows is decided twice — by the inline script in <head> via the
- * data-when CSS gate before paint, and by React once storage has been read. The
- * `data-when` attributes are what stop a returning person seeing the first-visit
- * screen flicker past; see globals.css.
+ * Note it deliberately carries NO `data-when` attribute. The CSS gate in
+ * globals.css hides `[data-when="returning"]` whenever storage is empty, which
+ * is right on home — two faces, only one should paint — but fatal here: this
+ * page has a single face, so the gate blanked the entire tab for anyone with no
+ * trips saved. The empty state below is what should show instead.
  */
 
 export default function BoardPage() {
@@ -56,7 +57,7 @@ function TheBoard({ trips }: { trips: Trip[] }) {
   const lead = departures[0];
 
   return (
-    <div data-when="returning">
+    <div>
       <div className="flex items-baseline justify-between gap-4">
         <h1 className="font-display text-heading text-ink">Upcoming Trips</h1>
         <ButtonLink href="/trips/new" variant="primary">
