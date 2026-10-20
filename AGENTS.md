@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Wanderlist
 
-A packing list for trips you take again. You keep a few recurring trips on a board
+Packing lists for your favorite destinations. You keep the trips you take again in one place
 — "Thanksgiving at my parents'", "Ann Arbor for a game weekend", "Lisbon in March"
 — and each time one comes around, the list is already built, already corrected by
 the last time you took it, and already adjusted for how long you're going and what
@@ -23,32 +23,37 @@ Due Tuesday, October 20 2026, 5:30 PM.
 
 The assignment is organized around three flows. Every design decision should serve one.
 
-**1. First visit** — nothing in storage. The board is empty, so instead of an empty
+**1. First visit** — nothing in storage. There is nothing to show, so instead of an empty
 screen it offers three ready-made trips to adopt ("A weekend at home", "A week
-somewhere warm", "Three days for a conference"). One tap puts a real trip on the
-board with a real packing list. The person learns what the tool is by using it, not
+somewhere warm", "Three days for a conference"). One tap produces a real trip with a real
+packing list. The person learns what the tool is by using it, not
 by reading a tour.
 
 **2. The core task** — written as one sentence:
 
-> I add a trip → the board builds its packing list from the dates and the destination → I check things off as I pack → I come back next time and it's already corrected from last trip.
+> I add a trip → it builds a packing list from the dates and the destination → I check things off as I pack → I come back next time and it's already corrected from last trip.
 
 **3. Coming back** — three reasons, on three clocks:
 - *Mid-pack:* packing happens over several evenings, so a part-packed list is a
   standing invitation to come back and finish it.
-- *Before the trip:* the board leads with the next departure and what's still unpacked ("Lisbon, in 3 days — 7 items left").
+- *Before the trip:* home and Upcoming both lead with the next departure and what's still unpacked ("Lisbon, in 3 days — 7 items left").
 - *After the trip:* a short review marks what you never used and what you wished
   you'd brought. Those corrections are applied the next time you pack that trip.
   The list measurably improves each time you return.
 
 ## Shape of the app
 
-Three tabs in the masthead, which is what gives the tool a legible purpose:
+Four tabs in the masthead, which is what gives the tool a legible purpose. New trip leads
+because starting one is what people arrive to do; the rest are views onto trips that
+already exist.
 
-| — | `/` | Home, with two faces. **A true first visit lands here and the onboarding *is* this page** — three starter trips, one tap to a real list. Returning, it leads with the next departure and three ways in. |
-| Upcoming | `/trips` | The board. Starters on a true first visit; otherwise the next departure leads, with finished trips below a 2px rule and "Pack this again" on each. |
+| Tab | Route | What it is |
+|---|---|---|
+| — | `/` | Home, with two faces. **A true first visit lands here and the onboarding *is* this page** — three ready-made trips or your own, one tap to a real list. Returning, it says "Welcome Back" and leads with the next departure. |
 | New trip | `/trips/new` | The form. Also serves `?from=<id>` to repeat a finished trip with its corrections applied. |
-| Inventory | `/inventory` | Your inventory. Things you list yourself (`kit` in storage) merged with everything trips reveal about what you actually pack, plus "What you took" per finished trip. |
+| Upcoming | `/trips` | Upcoming trips only, soonest first. Starters on a true first visit. |
+| Previous | `/previous` | Finished trips: what was packed, what each taught the next list, and "Pack this again". Lives at `/previous`, not `/trips/previous`, so it can't collide with a trip id. |
+| Inventory | `/inventory` | Things you list yourself (`kit` in storage) merged with everything trips reveal. Sorts by Packed most, or filters to Never used. Also lists what you took per finished trip. |
 
 A trip (`/trips/[id]`) and its review belong to the Upcoming tab, since that's
 where you came from.
@@ -124,9 +129,14 @@ Next.js 16.4.2, React 19.3, Tailwind v4. Three things differ from older training
    returning user must never see the first-visit screen flicker past. The fix, from
    `node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md`:
    an inline script in `<head>` sets `data-has-trips` on `<html>` during HTML parsing,
-   and the provider's `useState` lazy initializer reads the *same* key so React's
-   initial state agrees with the DOM. Keep those two in sync — if you change the
-   storage key, change it in both places.
+   and the provider reads the *same* key so React's initial state agrees with the
+   DOM. Keep those two in sync — if you change the storage key, change it in both
+   places.
+
+   Keys are `wanderlist.*`. Each falls back to a `departure-board.*` predecessor
+   from before the rename and writes forward on first read, so nobody's saved
+   trips were orphaned — `LEGACY_STORAGE_KEY` in `lib/storage.ts`. The inline
+   script checks both names for the same reason.
 
 4. **Hand-written CSS must go in `@layer base`.** Tailwind v4 emits utilities
    inside a cascade layer, and unlayered rules beat layered ones regardless of
@@ -151,7 +161,7 @@ rather than hand-writing props.
 Carried over from Assignment 2 (https://design-hw2.vercel.app/design-systems/a).
 The mood: *parchment and pressed ink under a red awning. Printed, unhurried, worn at
 the corners.* It should read like a typeset document, not a web app — which suits a
-departure board and a packing manifest.
+a departure board and a packing manifest.
 
 Colors, declared as tokens in `globals.css`:
 
