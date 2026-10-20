@@ -122,7 +122,7 @@ export function AddItemForm({
           </div>
 
           <div className="sm:w-52">
-            <Field label="Where it goes" optional error={categoryError}>
+            <Field label="Where it goes" error={categoryError}>
               {(props) => (
                 <>
                   <Select

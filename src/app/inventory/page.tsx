@@ -20,7 +20,17 @@ import { formatDateRange, phaseOf, sortForBoard } from "@/lib/trips";
  * they don't need a headline telling you what to think about them.
  */
 
-type View = "most" | "least";
+/**
+ * "Packed least" used to be a reverse sort, which barely did anything: the page
+ * groups by category *after* sorting and categories render in a fixed order, so
+ * flipping the flat list moved almost nothing on screen. Worse, with one trip
+ * and nothing ticked every row read identically and the toggle looked broken.
+ *
+ * "Never used" is a filter instead, and an actionable one — things that have
+ * been on a list and never once made it into the bag are exactly what's worth
+ * retiring.
+ */
+type View = "most" | "unused";
 
 export default function InventoryPage() {
   const { trips, kit, ready, addKitItems, removeKitItem } = useTrips();
@@ -34,12 +44,16 @@ export default function InventoryPage() {
     [ready, trips, kit],
   );
 
-  const ordered = useMemo(() => {
-    const sorted = [...entries];
-    return view === "most"
-      ? sorted
-      : sorted.reverse();
-  }, [entries, view]);
+  /* buildInventory already returns most-packed first. */
+  const neverUsed = useMemo(
+    () => entries.filter((e) => e.packedTimes === 0 && e.onTrips > 0),
+    [entries],
+  );
+
+  const ordered = useMemo(
+    () => (view === "most" ? entries : neverUsed),
+    [entries, neverUsed, view],
+  );
 
   const categories = useMemo(
     () => categoriesPresent(ordered.map((e) => e.category)),
@@ -82,10 +96,18 @@ export default function InventoryPage() {
               label="Sort the inventory"
               options={[
                 ["most", "Packed most"],
-                ["least", "Packed least"],
+                ["unused", `Never used${neverUsed.length ? ` (${neverUsed.length})` : ""}`],
               ] as const}
             />
           </div>
+
+          {view === "unused" && (
+            <p className="measure mt-4 text-small text-muted">
+              {neverUsed.length === 0
+                ? "Nothing here — everything on your lists has been packed at least once."
+                : "On a list at least once, never actually packed. Worth retiring, or worth remembering next time."}
+            </p>
+          )}
 
           <div className="mt-5">
             {categories.map((category) => (
