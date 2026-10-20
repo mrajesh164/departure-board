@@ -54,7 +54,13 @@ A trip (`/trips/[id]`) and its review belong to the Upcoming tab, since that's
 where you came from.
 
 **The first visit lives in `components/StarterTrips.tsx`**, rendered by both `/`
-and `/trips` so neither entry point can dead-end. The `data-when` CSS gate (see
+and `/trips` so neither entry point can dead-end. It carries
+`components/WorkedExample.tsx` — a trip already packed twice, with its
+corrections shown inline. That exists because the correction loop is the only
+thing this tool does that a notes app doesn't, and it's the one thing a first
+visit can't otherwise show: it takes two trips to happen. The example is built
+by `lib/example.ts`, flagged `isExample`, badged wherever it appears, and
+deletable like any other trip. The `data-when` CSS gate (see
 `globals.css`) now applies to home. `components/ResetFirstVisit.tsx` in the
 footer exists because otherwise the onboarding becomes unreachable the moment it
 succeeds — there's no other way to see it again on the same device.
@@ -197,8 +203,11 @@ Keep these true as the code changes:
   and **every value the person typed survives a failed submit**.
 - Coming back: the app remembers, and the returning experience is designed, not
   incidental.
-- Shared components used consistently — `Button`, `Field`, `TextInput`, `Card`.
-  Don't style a one-off button inline.
+- Shared components used consistently — `Button`, `Field` (with `TextInput`,
+  `Select`, `TextArea`, `Checkbox`), `Card`, and `Controls` (`Stepper`,
+  `QuietAction`, `SegmentedControl`, `Chip`, `SuggestionList`). **Don't style a
+  one-off control inline.** The check is a grep: `<button`, `<input`,
+  `<textarea>` and `<select` should appear nowhere outside those three files.
 - Accessibility: full keyboard operation, visible focus, real labels, errors
   associated with their field (`aria-describedby` + `role="alert"`), and text
   contrast checked.
