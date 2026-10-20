@@ -58,9 +58,19 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<StoredState>(EMPTY_STATE);
   const [ready, setReady] = useState(false);
 
-  // Runs before the browser paints, so real data is on screen in the first frame
-  // the user actually sees.
+  /**
+   * Runs before the browser paints, so real data is on screen in the first
+   * frame the user actually sees.
+   *
+   * eslint's react-hooks rule objects to setState inside an effect, and is
+   * normally right — but this is exactly the case the rule can't see. The first
+   * render *must* match the server (empty), and the real value *must* land
+   * before paint, or a returning person sees the first-visit screen. The Next
+   * docs prescribe this pattern; see preventing-flash-before-hydration.md and
+   * the HAS_TRIPS_SCRIPT comment in lib/storage.ts. It runs once, on mount.
+   */
   useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(readState());
     setReady(true);
   }, []);

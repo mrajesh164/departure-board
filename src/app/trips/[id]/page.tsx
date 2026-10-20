@@ -64,8 +64,12 @@ function Checklist() {
      in the same view rather than at the top of a list you'd already narrowed. */
   const filterKey = `departure-board.filter.${id}`;
   const [hidePacked, setHidePacked] = useState(false);
+  /* Same constraint as the provider: this value only exists on the client, so
+     it can't be a lazy initializer without desynchronising from the server
+     render. Reading it in an effect is the correct trade here. */
   useEffect(() => {
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHidePacked(localStorage.getItem(filterKey) === "1");
     } catch {
       /* private browsing — the default is fine */

@@ -242,7 +242,7 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
       {needsManualConditions && (
         <fieldset className="mb-6 border border-rule bg-surface p-4">
           <legend className="px-1 font-sans text-label uppercase text-muted">
-            We don't know {destination.trim()}
+            We don&apos;t know {destination.trim()}
           </legend>
           <p className="measure mb-4 text-small text-muted">
             Tell us roughly what to expect and the list will still be built

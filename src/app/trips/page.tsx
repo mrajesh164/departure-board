@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTrips } from "@/app/providers";
 import { ButtonLink } from "@/components/Button";
-import { Badge, Card, Label, SectionRule } from "@/components/Card";
+import { Badge, Card, Label } from "@/components/Card";
 import { PackProgress } from "@/components/PackProgress";
 import { DestinationArt } from "@/components/DestinationArt";
 import { StarterTrips } from "@/components/StarterTrips";
@@ -52,7 +52,7 @@ export default function BoardPage() {
 function TheBoard({ trips }: { trips: Trip[] }) {
   const sorted = sortForBoard(trips);
   const departures = sorted.filter((t) => phaseOf(t) !== "past");
-  const previously = sorted.filter((t) => phaseOf(t) === "past");
+  const finished = sorted.filter((t) => phaseOf(t) === "past").length;
   const needsReview = awaitingReview(trips);
   const lead = departures[0];
 
@@ -109,8 +109,7 @@ function TheBoard({ trips }: { trips: Trip[] }) {
 
       {trips.length > 0 && departures.length === 0 && (
         <p className="measure mt-4 text-body text-muted">
-          Nothing coming up. Pack one of your previous trips again, or add a new
-          one.
+          Nothing coming up. Pack a previous trip again, or plan a new one.
         </p>
       )}
 
@@ -128,18 +127,16 @@ function TheBoard({ trips }: { trips: Trip[] }) {
         </Card>
       )}
 
-      {previously.length > 0 && (
-        <>
-          <SectionRule className="mt-10" />
-          <h2 className="mt-4 font-display text-heading text-ink">
-            Previously
-          </h2>
-          <ul className="mt-2">
-            {previously.map((trip) => (
-              <TripRow key={trip.id} trip={trip} past />
-            ))}
-          </ul>
-        </>
+      {finished > 0 && (
+        <p className="mt-8 border-t border-rule pt-4 text-small text-muted">
+          {finished === 1
+            ? "One finished trip is in "
+            : `${finished} finished trips are in `}
+          <Link href="/previous" className="text-ink">
+            Previous
+          </Link>
+          .
+        </p>
       )}
     </div>
   );

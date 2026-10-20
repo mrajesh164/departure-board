@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTrips } from "@/app/providers";
-import { Button, ButtonLink } from "@/components/Button";
 import { Badge, Label, SectionRule } from "@/components/Card";
 import { AddKitForm } from "@/components/AddKitForm";
 import { QuietAction, SegmentedControl } from "@/components/Controls";
