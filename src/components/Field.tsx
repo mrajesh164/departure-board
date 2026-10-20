@@ -118,6 +118,16 @@ export function Select({
   );
 }
 
+export function TextArea({
+  className = "",
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  /* Same frame as the input. This exists because AddKitForm had the CONTROL
+     string copied out by hand — the sort of drift that makes a design system
+     stop being one. */
+  return <textarea className={`${CONTROL} ${className}`} {...props} />;
+}
+
 /* -------------------------------------------------------------------------
    A square checkbox. (Radios are round; checkboxes are not.)
 ------------------------------------------------------------------------- */
