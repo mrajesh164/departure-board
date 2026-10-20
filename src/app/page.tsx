@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/Button";
 import { Label } from "@/components/Card";
 import { StarterTrips } from "@/components/StarterTrips";
 import { DESTINATION_PHOTOS } from "@/lib/photos";
+import { buildInventory } from "@/lib/inventory";
 import {
   countdownLabel,
   nextDeparture,
@@ -120,12 +121,13 @@ function Returning({ trips }: { trips: Trip[] }) {
 
   /* Evidence that the tool actually remembers them. This is the whole reason to
      come back rather than start a list in Notes again, so it leads rather than
-     hiding in the Inventory tab. */
+     hiding in the Inventory tab.
+
+     The inventory figure is the *derived* total — everything across every trip
+     plus anything listed by hand — so it matches what the Inventory tab shows.
+     Counting only `kit` undercounted it to whatever had been typed in. */
   const finished = trips.filter((t) => phaseOf(t) === "past").length;
-  const corrections = trips.reduce(
-    (n, t) => n + t.learned.add.length + t.learned.drop.length,
-    0,
-  );
+  const inventoryTotal = buildInventory(trips, kit).length;
 
   return (
     <div data-when="returning">
@@ -133,7 +135,7 @@ function Returning({ trips }: { trips: Trip[] }) {
         <h1 className="font-display text-display text-ink">Welcome Back.</h1>
 
         <p className="measure mt-4 text-body text-ink">
-          {summarise({ trips: trips.length, finished, kit: kit.length, corrections })}
+          {summarise({ trips: trips.length, finished, inventory: inventoryTotal })}
         </p>
 
         {next ? (
@@ -201,23 +203,18 @@ function Returning({ trips }: { trips: Trip[] }) {
 function summarise({
   trips,
   finished,
-  kit,
-  corrections,
+  inventory,
 }: {
   trips: number;
   finished: number;
-  kit: number;
-  corrections: number;
+  inventory: number;
 }): string {
   const parts: string[] = [
     `${trips} ${trips === 1 ? "trip" : "trips"} on the board`,
   ];
-  if (kit > 0) {
-    parts.push(`${kit} ${kit === 1 ? "thing" : "things"} in your inventory`);
-  }
-  if (corrections > 0) {
+  if (inventory > 0) {
     parts.push(
-      `${corrections} ${corrections === 1 ? "correction" : "corrections"} learned`,
+      `${inventory} ${inventory === 1 ? "thing" : "things"} in your inventory`,
     );
   }
 
