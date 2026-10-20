@@ -17,11 +17,11 @@ export type CategoryStyle = { hue: string; tint: string };
 const KNOWN: Record<KnownCategory, CategoryStyle> = {
   Documents: { hue: "#3E5668", tint: "#DDE3E8" },
   Outerwear: { hue: "#7B3F2E", tint: "#EBDCD5" },
-  Clothing: { hue: "#5F7048", tint: "#E1E6D7" },
+  Clothing: { hue: "#566642", tint: "#E1E6D7" },
   Footwear: { hue: "#6B4E32", tint: "#E7DED2" },
   Toiletries: { hue: "#3A6560", tint: "#D9E4E2" },
   Tech: { hue: "#4A4A58", tint: "#DFDFE4" },
-  Extras: { hue: "#7A5E16", tint: "#ECE3CC" },
+  Extras: { hue: "#785C16", tint: "#ECE3CC" },
 };
 
 /**
