@@ -9,6 +9,7 @@ import { CategorySection } from "@/components/CategorySection";
 import { AddItemForm } from "@/components/AddItemForm";
 import { Checkbox } from "@/components/Field";
 import { PackCount, PackProgress } from "@/components/PackProgress";
+import { SavedNote } from "@/components/SavedNote";
 import { MONTHS } from "@/lib/climate";
 import { ConditionsNote } from "@/components/ConditionsNote";
 import { EditDates } from "@/components/EditDates";
@@ -182,9 +183,12 @@ function Checklist() {
       {/* --- progress --- */}
       {total > 0 && (
         <div className="mt-6">
-          <div className="mb-1.5 flex items-baseline justify-between">
+          <div className="mb-1.5 flex items-baseline justify-between gap-3">
             <Label>{allPacked ? "All packed" : `${left} still to pack`}</Label>
-            <PackCount packed={packed} total={total} />
+            <span className="flex items-baseline gap-3">
+              <SavedNote watch={`${packed}/${total}`} />
+              <PackCount packed={packed} total={total} />
+            </span>
           </div>
           <PackProgress packed={packed} total={total} />
         </div>
@@ -263,6 +267,10 @@ function Checklist() {
           destructive action sits apart, on the right. */}
       <div className="mt-10 border-t border-rule pt-4">
         <div className="flex flex-wrap items-start gap-3">
+          <ButtonLink href="/trips" variant="primary">
+            Done
+          </ButtonLink>
+
           {phase !== "past" && <EditDates trip={trip} />}
 
           {phase !== "past" && !allPacked && (
