@@ -46,7 +46,7 @@ function Review() {
           That trip isn&apos;t here
         </h1>
         <ButtonLink href="/trips" className="mt-5">
-          Back to the board
+          See upcoming trips
         </ButtonLink>
       </>
     );

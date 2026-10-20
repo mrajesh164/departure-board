@@ -39,7 +39,7 @@ const SECTIONS = [
     label: "Upcoming",
     title: "The trips you have",
     blurb:
-      "Every trip on one board, soonest first, each showing what's still left to pack.",
+      "Everything coming up, soonest first, each showing what's still left to pack.",
     photo: DESTINATION_PHOTOS["lisbon"],
   },
   {
@@ -242,7 +242,7 @@ function summarise({
   inventory: number;
 }): string {
   const parts: string[] = [
-    `${trips} ${trips === 1 ? "trip" : "trips"} on the board`,
+    `${trips} ${trips === 1 ? "upcoming trip" : "upcoming trips"}`,
   ];
   if (inventory > 0) {
     parts.push(

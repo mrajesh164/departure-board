@@ -12,7 +12,7 @@ import { buildInventory, type KitEntry } from "@/lib/inventory";
 import { formatDateRange, phaseOf, sortForBoard } from "@/lib/trips";
 
 /**
- * Everything you own and everything the board has learned about it.
+ * Everything you own and everything Wanderlist has learned about it.
  *
  * Two views rather than three named buckets: the sorting *is* the insight.
  * "Packed most" is the kit you actually rely on; "packed least" is the stuff

@@ -46,7 +46,7 @@ export function Nav() {
 function Tabs() {
   const pathname = usePathname();
 
-  /* A trip or its review belongs to Upcoming — you got there from the board,
+  /* A trip or its review belongs to Upcoming — that's where you came from,
      so that's the section you're in. */
   const active =
     pathname === "/trips/new"

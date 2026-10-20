@@ -104,7 +104,7 @@ function Checklist() {
           lives on the device you created it on.
         </p>
         <ButtonLink href="/trips" className="mt-5">
-          Back to the board
+          See upcoming trips
         </ButtonLink>
       </>
     );
@@ -154,7 +154,7 @@ function Checklist() {
           <p className="measure text-small text-ink">
             <strong>This is the example.</strong> It&apos;s been packed twice, so
             the list already reflects what those trips taught it. Try
-            &ldquo;Pack this again&rdquo; from the board — or delete it below.
+            &ldquo;Pack this again&rdquo; from Previous — or delete it below.
           </p>
           <Badge tone="warning">Example</Badge>
         </div>
@@ -263,10 +263,6 @@ function Checklist() {
           destructive action sits apart, on the right. */}
       <div className="mt-10 border-t border-rule pt-4">
         <div className="flex flex-wrap items-start gap-3">
-          <ButtonLink href="/trips" variant="secondary">
-            Back to the board
-          </ButtonLink>
-
           {phase !== "past" && <EditDates trip={trip} />}
 
           {phase !== "past" && !allPacked && (
