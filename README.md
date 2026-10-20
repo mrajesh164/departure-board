@@ -10,7 +10,7 @@ corrected.
 
 Built for **Design, Build, Ship · MPCS 51238 · Assignment 3 (Patterns & Flows)**.
 
-- **Live:** _(Vercel URL)_
+- **Live:** https://departure-board-nine.vercel.app/
 - **Flows:** [`flows.md`](./flows.md) · **Onboarding research:** [`research.md`](./research.md)
 - **Agent context:** [`AGENTS.md`](./AGENTS.md)
 
@@ -47,9 +47,14 @@ flowchart TD
 ```
 
 **First visit.** Nothing is saved, so there is nothing to show — which is exactly the dead
-end the brief warns about. Instead the front door offers three ready-made trips, and one
-tap creates a real trip with real dates and a real packing list. Value arrives before a
-single field is filled in.
+end the brief warns about. Instead the front door offers two equal options: pick one of
+three ready-made trips, or plan your own. One tap on a starter creates a real trip with
+real dates and a real packing list, before a single field is filled in.
+
+A four-step walkthrough then carries the rest of the loop using *that* trip — build, pack,
+review, see what it learned. Each step links to where it happens and is ticked from data
+that already exists, so it can't claim a step is done when it isn't. Finishing offers to
+delete the practice trip.
 
 **Coming back** happens on three clocks. Mid-pack, because packing takes several evenings
 and a part-packed list is an invitation to finish it. Before the trip, because the board
@@ -101,10 +106,11 @@ Three tabs in the masthead, so where you are is always legible.
 | Route | Flow | What it is |
 |---|---|---|
 | `/` | First visit · coming back | Home. A new person gets the onboarding here — three starter trips, one tap to a real list. Returning, it leads with the next departure. |
-| `/trips` | Coming back | **Upcoming Trips.** Soonest first, with finished trips below a rule and "Pack this again" on each. |
+| `/trips` | Coming back | **Upcoming Trips.** Soonest first, each showing what's left to pack. |
 | `/trips/new` | Core task | The form. Also serves `?from=<id>` to repeat a finished trip with its corrections already applied. |
 | `/trips/[id]` | Core task | **The checklist.** Category sections with their own tallies, quantity steppers, and a "hide what's packed" filter that survives a reload. |
 | `/trips/[id]/review` | Coming back | Two questions after the trip, which write `trip.learned`. |
+| `/previous` | Coming back | **Previous Trips.** What you took, what each taught the next list, and "Pack this again". |
 | `/inventory` | Coming back | What you own, how often it actually gets packed, and what you've retired. |
 
 ## How the list gets built
