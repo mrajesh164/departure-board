@@ -11,6 +11,7 @@ corrected.
 Built for **Design, Build, Ship · MPCS 51238 · Assignment 3 (Patterns & Flows)**.
 
 - **Live:** https://departure-board-nine.vercel.app/
+- **Repo:** https://github.com/mrajesh164/departure-board — named before the app was
 - **Flows:** [`flows.md`](./flows.md) · **Onboarding research:** [`research.md`](./research.md)
 - **Agent context:** [`AGENTS.md`](./AGENTS.md)
 
