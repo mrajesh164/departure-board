@@ -66,7 +66,7 @@ export function StarterTrips({
 
       {heading && <Label>Start with one of these</Label>}
 
-      <ul id="start" className="mt-5 grid scroll-mt-24 gap-3 sm:grid-cols-3">
+      <ul className="mt-5 grid gap-3 sm:grid-cols-3">
         {STARTERS.map((starter) => {
           const { startDate, endDate } = starterDates(starter);
           const climate = findClimate(starter.climateSlug);
@@ -129,14 +129,16 @@ export function StarterTrips({
         })}
       </ul>
 
-      <p className="mt-6 text-body">
-        <Link href="/trips/new" className="text-ink">
-          Or plan a specific trip
-        </Link>
-      </p>
+      {planLink && (
+        <p className="mt-6 text-body">
+          <Link href="/trips/new" className="text-ink">
+            Or plan a specific trip
+          </Link>
+        </p>
+      )}
 
       {/* The starters prove the tool builds a list. This proves it learns. */}
-      <div id="example" className="mt-9 scroll-mt-24">
+      <div className="mt-9">
         <WorkedExample />
       </div>
     </div>

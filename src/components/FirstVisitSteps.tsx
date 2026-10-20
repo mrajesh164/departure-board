@@ -1,47 +1,38 @@
 "use client";
 
-/**
- * Two steps across the top of the first visit.
- *
- * The worked example sits below the starter cards, which means it's off-screen
- * on arrival — and it's the half that carries the actual idea. Rather than
- * reorder them (the first useful action should still come first), this says up
- * front that there are two things here and gives the second one a way up.
- *
- * It's in-page navigation, not a tour: two links, no copy to read, and the
- * thing it points at is a working trip rather than an explanation.
- */
+import { ButtonLink } from "./Button";
 
-const STEPS = [
-  { href: "#start", n: 1, label: "Build your first list" },
-  { href: "#example", n: 2, label: "See how it learns" },
-] as const;
+/**
+ * How to start, stated once at the top of the first visit.
+ *
+ * This began as a two-step strip — "build your first list" and "see how it
+ * learns", the second anchoring down to the worked example. The second step
+ * didn't earn itself: it promised a stage of a process that was really just a
+ * card further down the page, so numbering it as step two implied an order that
+ * didn't exist.
+ *
+ * What's left is the actual instruction: build one, or look at a sample. Two
+ * routes, stated plainly, rather than a process with stages.
+ */
 
 export function FirstVisitSteps() {
   return (
-    <nav
-      aria-label="What's on this page"
-      className="flex flex-wrap items-stretch border-y border-rule-strong"
+    <section
+      aria-label="How to start"
+      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-y border-rule-strong px-4 py-4"
     >
-      {STEPS.map((step, i) => (
-        <a
-          key={step.href}
-          href={step.href}
-          className={`group flex flex-1 items-center gap-3 px-4 py-3 no-underline hover:bg-selected ${
-            i > 0 ? "border-l border-rule-strong" : ""
-          }`}
-        >
-          <span
-            aria-hidden="true"
-            className="grid size-6 shrink-0 place-items-center border border-ink bg-surface font-sans text-small font-semibold text-ink"
-          >
-            {step.n}
-          </span>
-          <span className="font-sans text-small text-ink group-hover:text-accent">
-            {step.label}
-          </span>
-        </a>
-      ))}
-    </nav>
+      <div>
+        <p className="font-sans text-body font-semibold text-ink">
+          Build your first packing list
+        </p>
+        <p className="mt-0.5 text-small text-muted">
+          Or choose from the trips below to view sample lists.
+        </p>
+      </div>
+
+      <ButtonLink href="/trips/new" variant="primary">
+        New trip
+      </ButtonLink>
+    </section>
   );
 }
