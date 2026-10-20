@@ -5,7 +5,7 @@ the first visit, the core task, and coming back.
 
 The core task, as one sentence:
 
-> I add a trip → the board builds its packing list from the dates and the destination →
+> I add a trip → it builds a packing list from the dates and the destination →
 > I check things off as I pack → I come back next time and it's already corrected from
 > last trip.
 
@@ -15,34 +15,38 @@ The core task, as one sentence:
 flowchart TD
     Start([Opens the app]) --> Has{Anything saved?}
 
-    Has -->|"No — first visit"| First["First visit<br/>three starter trips, one tap"]
+    Has -->|"No — first visit"| First["First visit<br/>three ready-made trips, or plan your own"]
     First -->|taps a starter| Build
-    First -->|plan a specific trip| Form
+    First -->|plans their own| Form
 
-    Has -->|Yes| Board["The board<br/>next departure leads"]
-    Board -->|add a trip| Form["/trips/new<br/>name · destination · dates"]
+    Has -->|Yes| Home["Home<br/>Welcome Back, next departure leads"]
+    Home --> Upcoming["/trips<br/>Upcoming"]
+    Upcoming -->|add a trip| Form["/trips/new<br/>name · destination · dates"]
     Form -->|something missing| FormErr["Error beside the field<br/>typed values kept"]
     FormErr --> Form
     Form -->|destination not in the table| Manual["Pick the conditions yourself"]
     Manual --> Form
     Form -->|valid| Build["Build the list<br/>climate × duration × learned"]
     Build --> Pack["/trips/[id]<br/>the checklist"]
-    Pack -->|back to the board| Board
+    Pack -->|Done| Upcoming
 
-    Pack -->|trip is over| Review["/trips/[id]/review<br/>never used · wished for"]
+    Pack -->|trip is over| Review["/trips/[id]/review<br/>didn't need · wished for"]
     Review -->|saves| Learn[("trip.learned<br/>drop + add")]
+    Review --> Previous["/previous<br/>what you took"]
+    Previous -->|pack this again| Form
     Learn -.->|applied to the next list| Build
-    Board -->|pack this again| Form
 ```
 
 **First visit.** Nothing is saved, so there is nothing to show — which is exactly the
-dead-end the brief warns about. Instead the board offers three starter trips, and one tap
-creates a real trip, with real dates and a real packing list you can change afterwards.
-Value arrives before a single field is filled in.
+dead-end the brief warns about. Instead the front door offers two equal routes: three
+ready-made trips, or plan your own. One tap on a starter creates a real trip, with real
+dates and a real packing list you can change afterwards. Value arrives before a single
+field is filled in.
 
 **Coming back** has three reasons on three different clocks. Mid-pack, because packing
 happens over several evenings and a part-packed list is an invitation to finish it. Before
-the trip, because the board leads with the next departure and what's still unpacked.
+the trip, because home and Upcoming both lead with the next departure and what's still
+unpacked.
 After it, because a short review feeds `trip.learned`, and the next run of that trip
 starts already corrected.
 
@@ -66,18 +70,18 @@ flowchart TD
     subgraph Actions["While you pack"]
         Check["Check off, or uncheck"]
         Qty["Quantity − 7 +"]
-        AddItem["Add your own item"]
+        AddItem["Add your own, or pick from your inventory"]
         Hide["Hide what is packed"]
     end
 
     Actions --> Part
     AddItem -->|empty or already listed| ItemErr["Error beside the field"]
     ItemErr --> AddItem
-    AddItem -.->|remembered next time| LearnAdd[("learned.add")]
+    AddItem -.->|remembered next time| LearnAdd[("learned.add + inventory")]
 ```
 
 Part-packed is a first-class state rather than an in-between. Packing over several
-sessions is the shortest-cycle reason anyone reopens this app, so the board surfaces it
+sessions is the shortest-cycle reason anyone reopens this app, so Upcoming surfaces it
 ("Lisbon — 7 items left") and the list reopens exactly where it was left, filter included.
 
 Items group into sections by category, each with its own tally, and every row says *why*
@@ -103,7 +107,7 @@ From there `buildPackingList` in `src/lib/suggestions.ts` combines three inputs:
 |---|---|
 | Trip length | Quantities — socks and underwear scale with nights, capped at ten |
 | That month's climate | Outerwear, rain gear, sun gear; a freezing low is treated differently from a merely cold day |
-| `trip.learned` | Drops what you never used, adds back what you asked for |
+| `trip.learned` | Drops what you didn't need, adds back what you asked for |
 
 A trip spanning a month boundary packs for the harder half — the colder high and the
 wetter month — rather than the average of the two.
@@ -111,7 +115,7 @@ wetter month — rather than the average of the two.
 ## Error states
 
 Every one renders beside its own field, is phrased as an instruction, and keeps what the
-person already typed.
+person already typed. A failed submit also moves focus to the first invalid field.
 
 | Where | Condition | Message |
 |---|---|---|
@@ -122,6 +126,10 @@ person already typed.
 | End date | before the start date | `End the trip on or after it starts.` |
 | Add item | empty label | `Name the item you want to add.` |
 | Add item | already on the list | `Socks are already on this list.` |
+| New category | empty name | `Name the new category.` |
+| Inventory | nothing listed | `List at least one thing to add.` |
+| Inventory | all duplicates | `Socks is already in your inventory.` |
+| Review | empty wish | `Name the thing you wished you'd brought.` |
 
 A destination that isn't in the climate table is deliberately **not** an error. The form
 reveals a conditions picker instead, so any destination in the world still works.
