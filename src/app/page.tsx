@@ -56,10 +56,13 @@ const SECTIONS = [
     title: "What you own",
     blurb:
       "Everything you carry, how often it actually gets packed, and what you've retired.",
-    // A steamer trunk rather than another city: this card isn't about a place.
-    // It also happens to be exactly the design system's "worn at the corners".
+    /* A stack of old leather cases rather than another city: this card isn't
+       about a place. Warm tans, oxblood and brass with the travel labels still
+       stuck on — which is the design system's "worn at the corners" almost
+       literally. The single grey hardshell it replaced was cold against the
+       parchment and read as a product shot. */
     photo:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Trunk_1.jpg/1280px-Trunk_1.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Stack_of_luggages_%28Unsplash%29.jpg/1280px-Stack_of_luggages_%28Unsplash%29.jpg",
   },
 ] as const;
 
@@ -164,7 +167,7 @@ function Returning({ trips }: { trips: Trip[] }) {
   return (
     <div data-when="returning">
       <section className="border-b-2 border-ink pb-8">
-        <h1 className="font-display text-display text-ink">Welcome Back.</h1>
+        <h1 className="font-display text-display text-ink">Welcome Back</h1>
 
         <p className="measure mt-4 text-body text-ink">
           {summarise({ trips: trips.length, finished, inventory: inventoryTotal })}
