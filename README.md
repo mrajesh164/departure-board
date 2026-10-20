@@ -1,6 +1,6 @@
-# The Departure Board
+# Wanderlist
 
-A packing list for the trips you take again.
+Packing lists for your favorite destinations.
 
 You keep a few recurring trips on a board — Thanksgiving at your parents', a conference in
 New York, Lisbon in March. Each one builds its own packing list from your dates and the

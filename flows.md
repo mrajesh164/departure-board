@@ -1,6 +1,6 @@
 # Flows
 
-The Departure Board is a packing list for trips you take again. Three flows carry it:
+Wanderlist is a packing list for trips you take again. Three flows carry it:
 the first visit, the core task, and coming back.
 
 The core task, as one sentence:

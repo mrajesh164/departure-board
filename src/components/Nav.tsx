@@ -32,7 +32,7 @@ export function Nav() {
           href="/"
           className="mb-3 font-display text-subhead font-semibold tracking-tight text-ink no-underline hover:text-accent"
         >
-          The Departure Board
+          Wanderlist
         </Link>
 
         <Suspense fallback={<TabList active={null} />}>

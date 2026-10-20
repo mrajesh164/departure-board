@@ -13,6 +13,11 @@
 
 import { EMPTY_STATE, type KitItem, type StoredState, type Trip } from "./types";
 
+/*
+ * The key keeps the old name on purpose. The app was called The Departure Board
+ * before it was Wanderlist, and renaming the key would orphan every trip anyone
+ * has already saved — there's no server to migrate them from.
+ */
 export const STORAGE_KEY = "departure-board.v1";
 
 /**

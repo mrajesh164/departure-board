@@ -87,7 +87,7 @@ function FirstVisit() {
       <h1 className="font-display text-display text-ink">
         Welcome to
         <br />
-        The Departure Board
+        Wanderlist
       </h1>
 
       {/* One line, then straight into the thing itself.

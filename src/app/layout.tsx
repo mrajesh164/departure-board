@@ -19,9 +19,9 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "The Departure Board",
+  title: "Wanderlist",
   description:
-    "A packing list for trips you take again. Built from your dates, the weather there that month, and what you learned last time.",
+    "Packing lists for your favorite destinations. Built from your dates, the weather there that month, and what you learned last time.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

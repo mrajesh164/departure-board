@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# The Departure Board
+# Wanderlist
 
 A packing list for trips you take again. You keep a few recurring trips on a board
 — "Thanksgiving at my parents'", "Ann Arbor for a game weekend", "Lisbon in March"
@@ -164,7 +164,7 @@ Colors, declared as tokens in `globals.css`:
 | `ink` | `#2B1D16` | headings and body |
 | `muted` | `#685C54` | captions, meta, placeholders |
 | `rule` | `#C3BAB0` | dividers and plate rules |
-| `rule-strong` | `#90867C` | input and control edges |
+| `rule-strong` | `#83796F` | input and control edges (darkened from `#90867C` to clear 3:1 against the page) |
 | `accent` | `#AE3220` | primary action only |
 | `success` | `#41662F` | confirmation |
 | `error` | `#7B1E2B` | failure and destructive |
