@@ -85,8 +85,19 @@ function Review() {
     router.push("/trips");
   }
 
-  const packedItems = trip.items.filter((i) => i.packed);
-  const candidates = packedItems.length > 0 ? packedItems : trip.items;
+  /**
+   * Every item on the list, not just the ticked ones.
+   *
+   * This used to offer only `packed` items, on the reasoning that you can't
+   * have failed to use something you never carried. True, but useless in
+   * practice: people tick a few things and pack the rest from memory, so a trip
+   * where one box got ticked offered exactly one thing to review. Worse, it
+   * silently withheld the items most worth retiring — the ones you never even
+   * bothered to pack.
+   *
+   * Both answers lead to the same action anyway: stop suggesting it.
+   */
+  const candidates = trip.items;
 
   return (
     <>
@@ -100,10 +111,12 @@ function Review() {
       {/* --- 1. what came home unused --- */}
       <section className="mt-8">
         <h2 className="font-display text-subhead text-ink">
-          Did you carry anything you never touched?
+          Anything you didn&apos;t need?
         </h2>
         <p className="mt-1 text-small text-muted">
-          These stop being suggested. You can always add them back.
+          Tick whatever you can stop packing — carried and unused, or never
+          packed at all. These stop being suggested, and you can always add them
+          back.
         </p>
 
         <ul className="mt-3">
@@ -128,11 +141,16 @@ function Review() {
                 <label
                   htmlFor={`unused-${item.id}`}
                   className={`flex-1 cursor-pointer text-body ${
-                    checked ? "text-muted line-through decoration-rule-strong" : "text-ink"
+                    checked
+                      ? "text-muted line-through decoration-rule-strong"
+                      : "text-ink"
                   }`}
                 >
                   {item.label}
                 </label>
+                <span className="text-small text-muted">
+                  {item.packed ? "you packed this" : "never packed"}
+                </span>
               </li>
             );
           })}
