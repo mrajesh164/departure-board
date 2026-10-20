@@ -44,10 +44,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-background text-ink">
         <TripsProvider>
           <Nav />
-          <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-8">
+          <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8">
             {children}
           </main>
-          <footer className="mx-auto w-full max-w-3xl px-5 pb-8">
+          <footer className="mx-auto w-full max-w-5xl px-5 pb-8">
             <div className="border-t border-rule pt-3">
               <ResetFirstVisit />
             </div>

@@ -27,7 +27,7 @@ const TABS = [
 export function Nav() {
   return (
     <header className="border-b-2 border-ink bg-background">
-      <div className="mx-auto flex max-w-3xl flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 pt-4">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 pt-4">
         <Link
           href="/"
           className="mb-3 font-display text-subhead font-semibold tracking-tight text-ink no-underline hover:text-accent"
