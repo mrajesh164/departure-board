@@ -103,7 +103,7 @@ function TheBoard({ trips }: { trips: Trip[] }) {
       {/* Never a dead end: the same ready-made trips the front door offers. */}
       {trips.length === 0 && (
         <div className="mt-8 border-t-2 border-ink pt-6">
-          <StarterTrips />
+          <StarterTrips planLink={false} />
         </div>
       )}
 

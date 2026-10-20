@@ -73,8 +73,9 @@ export default function InventoryPage() {
         <>
           <SectionRule className="mt-10" />
 
-          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="font-display text-heading text-ink">Everything</h2>
+          {/* No second heading: "Your Inventory" at the top already names this,
+              and "Everything" under a rule read as a different page. */}
+          <div className="mt-4 flex flex-wrap items-baseline justify-end gap-3">
             <SegmentedControl
               value={view}
               onChange={setView}

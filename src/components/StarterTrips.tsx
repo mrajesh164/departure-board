@@ -37,7 +37,15 @@ import { formatDateRange } from "@/lib/trips";
  * the copy says plainly so nobody worries they're committing to something.
  */
 
-export function StarterTrips({ heading = true }: { heading?: boolean }) {
+export function StarterTrips({
+  heading = true,
+  /** The board's empty state already offers "Plan a new trip", so it suppresses
+      this to avoid stacking three routes to the same place. */
+  planLink = true,
+}: {
+  heading?: boolean;
+  planLink?: boolean;
+}) {
   const { addTrip } = useTrips();
   const router = useRouter();
 
