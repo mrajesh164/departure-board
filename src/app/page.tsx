@@ -86,14 +86,18 @@ function FirstVisit() {
         Board
       </h1>
 
-      <p className="measure mt-5 text-body text-ink">
-        A packing list for the trips you take again.
+      {/* The proposition, not the mechanism. It used to read "a packing list
+          for the trips you take again", which described a *kind of trip* rather
+          than what the tool does for you — and quietly implied you could only
+          use it for trips you'd already taken. */}
+      <p className="measure mt-5 text-subhead font-semibold text-ink">
+        Packing lists that build themselves, and get better every trip.
       </p>
-      <p className="measure mt-3 text-body text-muted">
-        Each trip builds its own list from your dates and the weather where
-        you&apos;re going that month. Afterwards you say what you never used and
-        what you wished you&apos;d brought — so the next time you pack that
-        trip, the list starts already corrected.
+      <p className="measure mt-3 text-body text-ink">
+        Tell it where you&apos;re going and when. It works out what you&apos;ll
+        need from the length of the trip and what the weather usually does there
+        that month, then remembers what you actually used — so every list you
+        build is closer to right than the last.
       </p>
 
       <div className="mt-9 border-t-2 border-ink pt-6">
@@ -108,19 +112,29 @@ function FirstVisit() {
 /* ------------------------------------------------------------------ */
 
 function Returning({ trips }: { trips: Trip[] }) {
+  const { kit } = useTrips();
   const next = nextDeparture(trips);
   const unreviewed = trips.filter(
     (t) => phaseOf(t) === "past" && !t.review,
   ).length;
 
+  /* Evidence that the tool actually remembers them. This is the whole reason to
+     come back rather than start a list in Notes again, so it leads rather than
+     hiding in the Inventory tab. */
+  const finished = trips.filter((t) => phaseOf(t) === "past").length;
+  const corrections = trips.reduce(
+    (n, t) => n + t.learned.add.length + t.learned.drop.length,
+    0,
+  );
+
   return (
     <div data-when="returning">
       <section className="border-b-2 border-ink pb-8">
-        <h1 className="font-display text-display text-ink">
-          The Departure
-          <br />
-          Board
-        </h1>
+        <h1 className="font-display text-display text-ink">Welcome back.</h1>
+
+        <p className="measure mt-4 text-body text-ink">
+          {summarise({ trips: trips.length, finished, kit: kit.length, corrections })}
+        </p>
 
         {next ? (
           <NextUp trip={next} />
@@ -178,6 +192,41 @@ function Returning({ trips }: { trips: Trip[] }) {
       </ul>
     </div>
   );
+}
+
+/**
+ * One sentence of accumulated state, in plain English rather than a stat row.
+ * It has to earn its place on every visit, so it only mentions what's true.
+ */
+function summarise({
+  trips,
+  finished,
+  kit,
+  corrections,
+}: {
+  trips: number;
+  finished: number;
+  kit: number;
+  corrections: number;
+}): string {
+  const parts: string[] = [
+    `${trips} ${trips === 1 ? "trip" : "trips"} on the board`,
+  ];
+  if (kit > 0) {
+    parts.push(`${kit} ${kit === 1 ? "thing" : "things"} in your inventory`);
+  }
+  if (corrections > 0) {
+    parts.push(
+      `${corrections} ${corrections === 1 ? "correction" : "corrections"} learned`,
+    );
+  }
+
+  const tail =
+    finished > 0
+      ? ` Your next list already starts from what ${finished === 1 ? "that trip" : "those trips"} taught it.`
+      : "";
+
+  return `${parts.join(" · ")}.${tail}`;
 }
 
 function NextUp({ trip }: { trip: Trip }) {
