@@ -76,12 +76,18 @@ function TheBoard({ trips }: { trips: Trip[] }) {
         </ul>
       )}
 
-      {/* Never a dead end: with nothing saved at all, the board offers the same
-          ready-made trips the front door does. */}
+      {/* Never a dead end: with nothing saved at all, the board says so plainly
+          and then offers the same ready-made trips the front door does. Leaving
+          the heading sitting above empty space told a new person nothing. */}
       {trips.length === 0 && (
-        <div className="mt-6 border-t-2 border-ink pt-6">
-          <StarterTrips />
-        </div>
+        <>
+          <p className="measure mt-3 text-body text-ink">
+            No upcoming trips yet.
+          </p>
+          <div className="mt-6 border-t-2 border-ink pt-6">
+            <StarterTrips />
+          </div>
+        </>
       )}
 
       {trips.length > 0 && departures.length === 0 && (
