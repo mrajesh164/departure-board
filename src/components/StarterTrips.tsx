@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./Button";
-import { WorkedExample } from "./WorkedExample";
-import { FirstVisitSteps } from "./FirstVisitSteps";
 import { Label } from "./Card";
 import { DestinationArt } from "./DestinationArt";
 import { useTrips } from "@/app/providers";
@@ -52,10 +50,6 @@ export function StarterTrips({ heading = true }: { heading?: boolean }) {
 
   return (
     <div>
-      {/* Only the first visit gets the step strip; the board's empty state
-          reuses this component but is already inside its own flow. */}
-      {!heading && <FirstVisitSteps />}
-
       {heading && <Label>Start with one of these</Label>}
 
       <ul id="start" className="mt-5 grid scroll-mt-24 gap-3 sm:grid-cols-3">
@@ -121,16 +115,16 @@ export function StarterTrips({ heading = true }: { heading?: boolean }) {
         })}
       </ul>
 
+      {/* Choosing a ready-made trip and planning your own are equal options,
+          not a primary and a fallback — someone who already knows where
+          they're going shouldn't have to go via a sample. */}
       <p className="mt-6 text-body">
         <Link href="/trips/new" className="text-ink">
-          Or plan a specific trip
+          Or plan a trip of your own
         </Link>
       </p>
 
-      {/* The starters prove the tool builds a list. This proves it learns. */}
-      <div id="example" className="mt-9 scroll-mt-24">
-        <WorkedExample />
-      </div>
+
     </div>
   );
 }

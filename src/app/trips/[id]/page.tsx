@@ -149,7 +149,7 @@ function Checklist() {
 
       {/* An opened example says so, permanently, so it can never be mistaken
           for a trip the person created. */}
-      {trip.isExample && (
+      {trip.isOnboarding && (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-l-2 border-warning bg-surface px-4 py-3">
           <p className="measure text-small text-ink">
             <strong>This is the example.</strong> It&apos;s been packed twice, so
