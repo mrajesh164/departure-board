@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./Button";
+import { WorkedExample } from "./WorkedExample";
 import { Label } from "./Card";
 import { DestinationArt } from "./DestinationArt";
 import { useTrips } from "@/app/providers";
@@ -129,6 +130,11 @@ export function StarterTrips({ heading = true }: { heading?: boolean }) {
           Or plan a specific trip
         </Link>
       </p>
+
+      {/* The starters prove the tool builds a list. This proves it learns. */}
+      <div className="mt-9">
+        <WorkedExample />
+      </div>
     </div>
   );
 }
