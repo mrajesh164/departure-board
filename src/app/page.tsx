@@ -86,22 +86,19 @@ function FirstVisit() {
         Board
       </h1>
 
-      {/* The proposition, not the mechanism. It used to read "a packing list
-          for the trips you take again", which described a *kind of trip* rather
-          than what the tool does for you — and quietly implied you could only
-          use it for trips you'd already taken. */}
-      <p className="measure mt-5 text-subhead font-semibold text-ink">
-        Packing lists that build themselves, and get better every trip.
-      </p>
-      <p className="measure mt-3 text-body text-ink">
-        Tell it where you&apos;re going and when. It works out what you&apos;ll
-        need from the length of the trip and what the weather usually does there
-        that month, then remembers what you actually used — so every list you
-        build is closer to right than the last.
+      {/* One line, then straight into the thing itself.
+          This used to be a proposition plus a three-line explanation plus a
+          section label plus two lines of instructions — about sixty words
+          standing between a new person and the first useful screen. The cards
+          below already say what the tool does: a destination, a month, an item
+          count and the weather it reasoned from. Reading that is learning by
+          doing; reading a paragraph about it is not. */}
+      <p className="measure mt-4 text-subhead font-semibold text-ink">
+        Packing lists that build themselves.
       </p>
 
-      <div className="mt-9 border-t-2 border-ink pt-6">
-        <StarterTrips />
+      <div className="mt-8">
+        <StarterTrips heading={false} />
       </div>
     </div>
   );

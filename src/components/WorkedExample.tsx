@@ -76,8 +76,7 @@ export function WorkedExample() {
         </p>
 
         <p className="measure mt-3 text-body text-ink">
-          After each trip you say what you never used and what you wished
-          you&apos;d brought. Two runs in, this list has already fixed itself:
+          Two trips in, this list has already fixed itself:
         </p>
 
         {/* The corrections, visible without clicking through. */}

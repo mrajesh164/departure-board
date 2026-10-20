@@ -51,15 +51,7 @@ export function StarterTrips({ heading = true }: { heading?: boolean }) {
 
   return (
     <div>
-      {heading && (
-        <>
-          <Label>Start with one of these</Label>
-          <p className="measure mt-1 text-small text-muted">
-            Pick one and its packing list is ready immediately. The dates,
-            the destination and every item can be changed afterwards.
-          </p>
-        </>
-      )}
+      {heading && <Label>Start with one of these</Label>}
 
       <ul className="mt-3 grid gap-3 sm:grid-cols-3">
         {STARTERS.map((starter) => {
@@ -88,7 +80,7 @@ export function StarterTrips({ heading = true }: { heading?: boolean }) {
                   slug={starter.climateSlug}
                   city={starter.destination}
                   conditions={conditions}
-                  height={104}
+                  height={132}
                   className="border-0 border-b border-rule-strong"
                 />
               )}
@@ -97,9 +89,8 @@ export function StarterTrips({ heading = true }: { heading?: boolean }) {
                 <h3 className="font-display text-subhead text-ink">
                   {starter.name}
                 </h3>
-                <p className="mt-1 text-small text-muted">{starter.blurb}</p>
 
-                <p className="mt-3 flex-1 text-small text-ink">
+                <p className="mt-1 flex-1 text-small text-ink">
                   {items.length} items
                   {conditions
                     ? ` · ${BAND_LABEL[conditions.band].toLowerCase()}, ${WETNESS_LABEL[

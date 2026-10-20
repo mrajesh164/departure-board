@@ -25,8 +25,6 @@ type Starter = {
   startIn: number;
   /** Nights, inclusive — a 3 means a three-day trip. */
   days: number;
-  /** The one-line pitch on the first-visit card. */
-  blurb: string;
 };
 
 export const STARTERS: Starter[] = [
@@ -37,7 +35,6 @@ export const STARTERS: Starter[] = [
     climateSlug: "chicago",
     startIn: 5,
     days: 3,
-    blurb: "Three days, nothing complicated.",
   },
   {
     key: "warm",
@@ -46,7 +43,6 @@ export const STARTERS: Starter[] = [
     climateSlug: "lisbon",
     startIn: 30,
     days: 7,
-    blurb: "Seven days where the coat stays home.",
   },
   {
     key: "conference",
@@ -55,7 +51,6 @@ export const STARTERS: Starter[] = [
     climateSlug: "new-york",
     startIn: 14,
     days: 3,
-    blurb: "Short, and you need to look awake.",
   },
 ];
 
