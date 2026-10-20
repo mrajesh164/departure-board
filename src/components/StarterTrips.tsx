@@ -101,7 +101,7 @@ export function StarterTrips({
                 <p className="mt-1 flex-1 text-small text-ink">
                   {items.length} items
                   {conditions
-                    ? ` · ${BAND_LABEL[conditions.band].toLowerCase()}, ${WETNESS_LABEL[
+                    ? ` · ${BAND_LABEL[conditions.band]}, ${WETNESS_LABEL[
                         conditions.wetness
                       ].toLowerCase()}`
                     : ""}

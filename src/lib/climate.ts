@@ -424,12 +424,10 @@ export function toF(c: number): number {
 
 /** One line of plain English for the trip header. */
 export function describeConditions(c: Conditions): string {
+  /* Sentence case: the band opens the phrase so it's capitalised, the rest
+     follows a comma so it isn't. The rainy-day count used to be appended here
+     ("some rain, about 9 days that month") — too much arithmetic for a line
+     that only needs to answer "do I need a coat". */
   const temp = `${toF(c.lowC)}–${toF(c.highC)}°F`;
-  const wet =
-    c.wetness === "dry"
-      ? "mostly dry"
-      : c.wetness === "wet"
-        ? `wet, about ${c.rainDays} rainy days that month`
-        : `some rain, about ${c.rainDays} days that month`;
-  return `${BAND_LABEL[c.band].toLowerCase()}, ${temp}, ${wet}`;
+  return `${BAND_LABEL[c.band]}, ${temp}, ${WETNESS_LABEL[c.wetness].toLowerCase()}`;
 }

@@ -43,8 +43,8 @@ export function ConditionsNote({
       <p className="measure mt-1.5 text-small text-muted">
         {source === "climate" ? (
           <>
-            Based on what {destination} usually does in {month} —
-            not a forecast. Check one nearer the time.
+            Based on what {destination} weather is typically like in {month},
+            not a forecast. Check the forecast closer to your trip.
           </>
         ) : (
           <>
