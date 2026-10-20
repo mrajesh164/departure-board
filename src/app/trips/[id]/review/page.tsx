@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useTrips } from "@/app/providers";
 import { Button, ButtonLink } from "@/components/Button";
 import { Label } from "@/components/Card";
+import { Chip, QuietAction } from "@/components/Controls";
 import { Checkbox, Field, TextInput } from "@/components/Field";
 
 /**
@@ -150,19 +151,19 @@ function Review() {
         {wished.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2">
             {wished.map((w) => (
-              <li
-                key={w}
-                className="flex items-center gap-2 border border-rule-strong bg-selected px-2 py-1 text-small text-ink"
-              >
-                {w}
-                <button
-                  type="button"
-                  aria-label={`Remove ${w.toLowerCase()}`}
-                  onClick={() => setWished((prev) => prev.filter((x) => x !== w))}
-                  className="text-muted hover:text-error"
-                >
-                  ×
-                </button>
+              <li key={w} className="group">
+                <Chip>
+                  {w}
+                  <QuietAction
+                    onClick={() =>
+                      setWished((prev) => prev.filter((x) => x !== w))
+                    }
+                    label={`Remove ${w.toLowerCase()}`}
+                    className="opacity-100"
+                  >
+                    ×
+                  </QuietAction>
+                </Chip>
               </li>
             ))}
           </ul>

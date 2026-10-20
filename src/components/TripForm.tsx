@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "./Button";
 import { Field, Select, TextInput } from "./Field";
 import { Label } from "./Card";
+import { SuggestionList } from "./Controls";
 import { useTrips } from "@/app/providers";
 import {
   BAND_LABEL,
@@ -189,22 +190,18 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
                 }
               }}
             />
-            {matches.length > 0 && (
-              <ul className="mt-1 border border-rule-strong bg-surface">
-                {matches.map((c) => (
-                  <li key={c.slug}>
-                    <button
-                      type="button"
-                      onClick={() => pickDestination(c.slug, c.city)}
-                      className="block w-full px-3 py-1.5 text-left text-small text-ink hover:bg-selected"
-                    >
-                      {c.city}
-                      <span className="text-muted"> · {c.region}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <SuggestionList
+              items={matches}
+              getKey={(c) => c.slug}
+              onPick={(c) => pickDestination(c.slug, c.city)}
+            >
+              {(c) => (
+                <>
+                  {c.city}
+                  <span className="text-muted"> · {c.region}</span>
+                </>
+              )}
+            </SuggestionList>
           </>
         )}
       </Field>

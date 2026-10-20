@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "./Button";
 import { Field, Select, TextInput } from "./Field";
 import { Label } from "./Card";
+import { Chip } from "./Controls";
 import { styleFor } from "./categoryStyle";
 import type { Item, ItemCategory } from "@/lib/types";
 import { CATEGORY_ORDER } from "@/lib/types";
@@ -185,24 +186,13 @@ export function AddItemForm({
                   const style = styleFor(option.category);
                   return (
                     <li key={option.label}>
-                      <button
-                        type="button"
+                      <Chip
+                        swatch={style.hue}
                         onClick={() => add(option.label, option.category)}
-                        className="flex items-center gap-2 border border-rule-strong bg-surface px-2.5 py-1 text-small text-ink hover:bg-selected"
+                        label={`Add ${option.label.toLowerCase()} to this list`}
                       >
-                        <span
-                          aria-hidden="true"
-                          className="inline-block size-2"
-                          style={{ backgroundColor: style.hue }}
-                        />
                         {option.label}
-                        <span aria-hidden="true" className="text-muted">
-                          +
-                        </span>
-                        <span className="sr-only">
-                          Add to this list
-                        </span>
-                      </button>
+                      </Chip>
                     </li>
                   );
                 })}

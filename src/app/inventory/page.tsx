@@ -6,6 +6,7 @@ import { useTrips } from "@/app/providers";
 import { Button, ButtonLink } from "@/components/Button";
 import { Badge, Label, SectionRule } from "@/components/Card";
 import { AddKitForm } from "@/components/AddKitForm";
+import { QuietAction, SegmentedControl } from "@/components/Controls";
 import { styleFor } from "@/components/categoryStyle";
 import { categoriesPresent, type ItemCategory } from "@/lib/types";
 import { buildInventory, type KitEntry } from "@/lib/inventory";
@@ -75,7 +76,15 @@ export default function InventoryPage() {
 
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-display text-heading text-ink">Everything</h2>
-            <ViewToggle view={view} onChange={setView} />
+            <SegmentedControl
+              value={view}
+              onChange={setView}
+              label="Sort the inventory"
+              options={[
+                ["most", "Packed most"],
+                ["least", "Packed least"],
+              ] as const}
+            />
           </div>
 
           <div className="mt-5">
@@ -144,45 +153,6 @@ export default function InventoryPage() {
         </>
       )}
     </>
-  );
-}
-
-function ViewToggle({
-  view,
-  onChange,
-}: {
-  view: View;
-  onChange: (v: View) => void;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label="Sort the inventory"
-      className="flex border border-rule-strong"
-    >
-      {(
-        [
-          ["most", "Packed most"],
-          ["least", "Packed least"],
-        ] as const
-      ).map(([value, label], i) => (
-        <button
-          key={value}
-          type="button"
-          aria-pressed={view === value}
-          onClick={() => onChange(value)}
-          className={`px-3 py-1.5 font-sans text-small ${
-            i === 1 ? "border-l border-rule-strong" : ""
-          } ${
-            view === value
-              ? "bg-ink font-semibold text-surface"
-              : "bg-surface text-muted hover:bg-surface-raised hover:text-ink"
-          }`}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -260,14 +230,12 @@ function KitCategory({
 
             <span className="hidden justify-self-end sm:block">
               {entry.kitId && (
-                <button
-                  type="button"
+                <QuietAction
                   onClick={() => onRemove(entry.kitId!)}
-                  aria-label={`Remove ${entry.label.toLowerCase()} from your inventory`}
-                  className="text-small text-muted opacity-0 transition-opacity hover:text-error focus-visible:opacity-100 group-hover:opacity-100"
+                  label={`Remove ${entry.label.toLowerCase()} from your inventory`}
                 >
                   Remove
-                </button>
+                </QuietAction>
               )}
             </span>
           </li>

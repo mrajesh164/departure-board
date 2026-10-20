@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "./Field";
+import { QuietAction, Stepper } from "./Controls";
 import type { Item } from "@/lib/types";
 
 /**
@@ -58,42 +59,24 @@ export function ItemRow({
         {item.label}
       </label>
 
-      {/* Visible on hover, and whenever it has keyboard focus so it's reachable
-          without a pointer. */}
       <span className="hidden justify-self-end sm:block">
-        <button
-          type="button"
+        <QuietAction
           onClick={onRemove}
-          aria-label={`Remove ${item.label.toLowerCase()} from this list`}
-          className="text-small text-muted opacity-0 transition-opacity hover:text-error focus-visible:opacity-100 group-hover:opacity-100"
+          label={`Remove ${item.label.toLowerCase()} from this list`}
         >
           Remove
-        </button>
+        </QuietAction>
       </span>
+
       {/* Every item counts. A toothbrush is usually one, but someone packing for
           two people needs two, and there's no reason this should be the one row
           you can't adjust. */}
-      <span className="flex items-center justify-end gap-1 sm:justify-self-end">
-        <button
-          type="button"
-          onClick={() => onQty(item.qty - 1)}
-          disabled={item.qty <= 1}
-          aria-label={`One fewer ${item.label.toLowerCase()}`}
-          className="size-6 border border-rule-strong bg-surface text-small leading-none text-ink hover:bg-surface-raised disabled:opacity-40"
-        >
-          −
-        </button>
-        <span className="min-w-5 text-center font-sans text-small tabular-nums text-ink">
-          {item.qty}
-        </span>
-        <button
-          type="button"
-          onClick={() => onQty(item.qty + 1)}
-          aria-label={`One more ${item.label.toLowerCase()}`}
-          className="size-6 border border-rule-strong bg-surface text-small leading-none text-ink hover:bg-surface-raised"
-        >
-          +
-        </button>
+      <span className="flex justify-end sm:justify-self-end">
+        <Stepper
+          value={item.qty}
+          onChange={onQty}
+          noun={item.label.toLowerCase()}
+        />
       </span>
     </li>
   );

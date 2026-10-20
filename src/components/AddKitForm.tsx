@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "./Button";
-import { Field, Select, TextInput } from "./Field";
+import { Field, Select, TextArea, TextInput } from "./Field";
 import { CATEGORY_ORDER, type ItemCategory } from "@/lib/types";
 
 /**
@@ -101,7 +101,7 @@ export function AddKitForm({
             error={error}
           >
             {(props) => (
-              <textarea
+              <TextArea
                 {...props}
                 value={raw}
                 rows={3}
@@ -111,7 +111,6 @@ export function AddKitForm({
                   if (error) setError(undefined);
                   if (added) setAdded(undefined);
                 }}
-                className="w-full rounded-[2px] border border-rule-strong bg-surface px-3 py-2 font-sans text-body text-ink placeholder:text-muted data-[invalid=true]:border-error data-[invalid=true]:bg-selected"
               />
             )}
           </Field>
