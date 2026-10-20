@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "./Button";
 import { WorkedExample } from "./WorkedExample";
-import { FirstVisitSteps } from "./FirstVisitSteps";
 import { Label } from "./Card";
 import { DestinationArt } from "./DestinationArt";
 import { useTrips } from "@/app/providers";
@@ -60,10 +59,6 @@ export function StarterTrips({
 
   return (
     <div>
-      {/* Only the first visit gets the step strip; the board's empty state
-          reuses this component but is already inside its own flow. */}
-      {!heading && <FirstVisitSteps />}
-
       {heading && <Label>Start with one of these</Label>}
 
       <ul className="mt-5 grid gap-3 sm:grid-cols-3">

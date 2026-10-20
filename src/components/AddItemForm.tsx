@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "./Button";
-import { Field, Select, TextInput } from "./Field";
+import { Field, Select, TextInput, focusFirstError } from "./Field";
 import { Label } from "./Card";
 import { Chip } from "./Controls";
 import { styleFor } from "./categoryStyle";
@@ -46,6 +46,7 @@ export function AddItemForm({
   const [categoryError, setCategoryError] = useState<string>();
   const [justAdded, setJustAdded] = useState<string>();
   const [browsing, setBrowsing] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const extras = (existingCategories ?? []).filter(
     (c) => !CATEGORY_ORDER.includes(c),
@@ -70,17 +71,20 @@ export function AddItemForm({
     const trimmed = label.trim();
     if (!trimmed) {
       setError("Name the item you want to add.");
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
     if (existingLabels.some((l) => l.toLowerCase() === trimmed.toLowerCase())) {
       // Echo their own wording back rather than a generic "duplicate".
       setError(`${trimmed} is already on this list.`);
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
 
     const resolved = choosingNew ? customCategory.trim() : category;
     if (choosingNew && !resolved) {
       setCategoryError("Name the new category.");
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
 
@@ -97,7 +101,7 @@ export function AddItemForm({
 
   return (
     <div>
-      <form onSubmit={submit} noValidate>
+      <form ref={formRef} onSubmit={submit} noValidate>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
           <div className="flex-1">
             <Field label="Add an item" error={error}>

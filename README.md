@@ -172,7 +172,67 @@ There's a **Reset to first visit** control in the footer, which is the quickest 
 the onboarding again — everything is stored on one device, so it's otherwise unreachable
 once you've saved a trip.
 
+## Accessibility
+
+Keyboard operation, real labels and error association are built into the `Field` component
+rather than added afterwards — every control gets an `id` and the matching
+`aria-describedby` from the same place, so a field without a properly associated label is
+awkward to write.
+
+**Text contrast was checked by computing WCAG 2.1 ratios** for all 49 text-and-background
+pairs the app actually renders: every token on every surface it appears on, text on the
+accent and ink fills, and each category pigment on its own tint. Four failed:
+
+| Pair | Was | Needed | Now |
+|---|---|---|---|
+| `rule-strong` on the page background — every input and control edge | 2.63:1 | 3:1 (UI boundary) | **3.14:1** (`#90867C` → `#83796F`) |
+| Clothing pigment on its tint | 4.23:1 | 4.5:1 | **4.89:1** (`#5F7048` → `#566642`) |
+| Clothing pigment on the page background | 3.97:1 | 4.5:1 | **4.59:1** |
+| Extras pigment on the page background | 4.50:1 | 4.5:1 | **4.63:1** (`#7A5E16` → `#785C16`) |
+
+Each replacement scales HLS lightness only, so hue and saturation are untouched and the
+palette still reads as one ink set. All 49 pairs now pass.
+
 ## First-run check
 
-_Pending: run the agent against the live URL as a brand-new user, then paste its usability
-feedback and the changes made in response here._
+**Method, stated plainly:** the browser tooling available here can't attach to a remote
+URL, so the live deployment was verified by request (all six routes return 200) and the
+interactive pass was run against the same commit served locally. The findings are about
+the code, not the hosting.
+
+The run was a brand-new user with empty `localStorage` and one goal: *going to Lisbon next
+month, don't forget anything.* Four things came out of it, all since fixed.
+
+**1 · Five primary buttons competed on the first screen.** The design system reserves the
+accent fill for *the* primary action; the first visit had it on three starter cards, the
+New trip button and "Open the example" at once, so nothing read as the main path. The New
+trip button and the example are now secondary. Three remain, but they're one action
+repeated across parallel cards, which is what a card grid is for.
+
+**2 · A failed submit left focus on `<body>`.** Errors rendered correctly beside their
+fields and typed values survived — but nothing moved focus, so a keyboard or screen-reader
+user got no signal that the submit had failed and had to hunt the form for it. Added
+`focusFirstError()` to the `Field` module and wired it into all four forms; focus now lands
+on the first invalid field.
+
+**3 · The home page's static HTML was empty.** It rendered a blank 256px placeholder until
+storage had been read, so a new visitor on a slow connection got a blank screen before the
+JS arrived — the dead-end empty screen in a different costume. The first visit is the
+correct default for someone with nothing saved, and the `data-has-trips` gate already hides
+it for returning people before paint, so it now ships in the prerendered HTML. The starter
+*cards* can't be: their dates are relative to today, and Cache Components won't bake a clock
+reading into a static shell. So the shell is the greeting, the proposition and the
+instruction, and the cards arrive with the client.
+
+**4 · The review only offered items that had been ticked as packed.** Found earlier in the
+same pass: people tick a few things and pack the rest from memory, so a sixteen-item trip
+with one ticked box offered exactly one thing to review. It also withheld the items most
+worth retiring — the ones never packed at all. It now offers the whole list, each row
+marked "you packed this" or "never packed".
+
+**What I'd look at next, and didn't:** the three starter trips all resolve to similar
+conditions ("cool, some rain" twice, "mild, some rain" once), so the first visit
+under-sells the one thing that makes the lists differ. Picking destinations and dates that
+span the range — something genuinely cold, something hot — would make the climate reasoning
+visible in the first three seconds. Left alone because it changes the starter set rather
+than the code.

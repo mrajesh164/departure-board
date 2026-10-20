@@ -30,7 +30,9 @@ export function FirstVisitSteps() {
         </p>
       </div>
 
-      <ButtonLink href="/trips/new" variant="primary">
+      {/* Secondary: the accent fill belongs to the starter cards below, which
+          are the shorter path to a finished list. */}
+      <ButtonLink href="/trips/new" variant="secondary">
         New trip
       </ButtonLink>
     </section>

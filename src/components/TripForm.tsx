@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./Button";
-import { Field, Select, TextInput } from "./Field";
+import { Field, Select, TextInput, focusFirstError } from "./Field";
 import { Label } from "./Card";
 import { SuggestionList } from "./Controls";
 import { useTrips } from "@/app/providers";
@@ -53,6 +53,7 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
     repeatOf?.manualWetness ?? "some-rain",
   );
   const [errors, setErrors] = useState<Errors>({});
+  const formRef = useRef<HTMLFormElement>(null);
 
   /**
    * Resolve the destination to a climate from either an explicit pick or an
@@ -115,6 +116,8 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
     if (Object.keys(next).length > 0) {
       // Only errors change. Every typed value stays exactly where it is.
       setErrors(next);
+      // Then send focus to the first one, so it's announced rather than just drawn.
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
 
@@ -143,7 +146,7 @@ export function TripForm({ repeatOf }: { repeatOf?: Trip }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="max-w-xl">
+    <form ref={formRef} onSubmit={submit} noValidate className="max-w-xl">
       {repeatOf && (
         <p className="mb-6 border-l-2 border-success bg-surface px-3 py-2 text-small text-ink">
           Packing <strong>{repeatOf.name}</strong> again. Your

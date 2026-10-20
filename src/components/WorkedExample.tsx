@@ -113,7 +113,7 @@ export function WorkedExample() {
         </ul>
 
         <div className="mt-4 flex flex-wrap gap-3">
-          <Button variant="primary" onClick={open}>
+          <Button variant="secondary" onClick={open}>
             Open the example
           </Button>
           <Button variant="quiet" onClick={dismiss}>

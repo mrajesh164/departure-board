@@ -5,6 +5,7 @@ import { useTrips } from "./providers";
 import { ButtonLink } from "@/components/Button";
 import { Label } from "@/components/Card";
 import { StarterTrips } from "@/components/StarterTrips";
+import { FirstVisitSteps } from "@/components/FirstVisitSteps";
 import { DESTINATION_PHOTOS } from "@/lib/photos";
 import { buildInventory } from "@/lib/inventory";
 import {
@@ -65,11 +66,26 @@ const SECTIONS = [
 export default function HomePage() {
   const { trips, ready } = useTrips();
 
-  if (!ready) {
-    // A quiet placeholder rather than the empty state — showing "nothing saved"
-    // to someone with six trips, even for one frame, would be a lie.
-    return <div aria-hidden="true" className="h-64" />;
-  }
+  /**
+   * Before storage has been read, render the first visit rather than a blank box.
+   *
+   * This used to be an empty 256px placeholder, on the reasoning that showing
+   * "nothing saved" to someone with six trips would be a lie. But the gate
+   * already solves that: the inline script sets data-has-trips during HTML
+   * parsing, so CSS hides `[data-when="first-visit"]` before anything paints for
+   * a returning person.
+   *
+   * Meanwhile the placeholder meant the prerendered HTML contained nothing at
+   * all, so a brand-new visitor on a slow connection got a blank screen until
+   * the JS arrived — the dead-end empty screen in a different costume. Someone
+   * with empty storage is the correct default, so that's what ships in the
+   * static HTML.
+   *
+   * The starter *cards* can't be in it: their dates are relative to today, and
+   * Cache Components refuses to bake a clock reading into a static shell. So the
+   * shell is everything above them, and the cards arrive with the client.
+   */
+  if (!ready) return <FirstVisitShell />;
 
   return trips.length === 0 ? <FirstVisit /> : <Returning trips={trips} />;
 }
@@ -78,7 +94,11 @@ export default function HomePage() {
 /* Flow 1 — the first visit                                            */
 /* ------------------------------------------------------------------ */
 
-function FirstVisit() {
+/**
+ * The part of the first visit that holds no clock reading, so it can be
+ * prerendered. Shared with the full first visit below so the copy can't drift.
+ */
+function FirstVisitShell({ children }: { children?: React.ReactNode }) {
   return (
     <div data-when="first-visit">
       {/* A greeting rather than a wordmark: the masthead already carries the
@@ -101,10 +121,22 @@ function FirstVisit() {
         Packing lists for your favorite destinations.
       </p>
 
+      {/* In the shell on purpose: it's the instruction and the one route that
+          works without any client data, so it belongs in the static HTML. */}
       <div className="mt-8">
-        <StarterTrips heading={false} />
+        <FirstVisitSteps />
       </div>
+
+      <div className="mt-8">{children}</div>
     </div>
+  );
+}
+
+function FirstVisit() {
+  return (
+    <FirstVisitShell>
+      <StarterTrips heading={false} />
+    </FirstVisitShell>
   );
 }
 

@@ -1,12 +1,12 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTrips } from "@/app/providers";
 import { Button, ButtonLink } from "@/components/Button";
 import { Label } from "@/components/Card";
 import { Chip, QuietAction } from "@/components/Controls";
-import { Checkbox, Field, TextInput } from "@/components/Field";
+import { Checkbox, Field, TextInput, focusFirstError } from "@/components/Field";
 
 /**
  * Two questions, asked once, after the trip.
@@ -35,6 +35,7 @@ function Review() {
   const [wished, setWished] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string>();
+  const wishFormRef = useRef<HTMLFormElement>(null);
 
   if (!ready) return <div aria-hidden="true" className="h-64" />;
 
@@ -56,10 +57,12 @@ function Review() {
     const trimmed = draft.trim();
     if (!trimmed) {
       setError("Name the thing you wished you'd brought.");
+      queueMicrotask(() => focusFirstError(wishFormRef.current));
       return;
     }
     if (wished.some((w) => w.toLowerCase() === trimmed.toLowerCase())) {
       setError(`${trimmed} is already on this list.`);
+      queueMicrotask(() => focusFirstError(wishFormRef.current));
       return;
     }
     setWished((w) => [...w, trimmed]);
@@ -187,7 +190,7 @@ function Review() {
           </ul>
         )}
 
-        <form onSubmit={addWish} noValidate className="mt-3 max-w-md">
+        <form ref={wishFormRef} onSubmit={addWish} noValidate className="mt-3 max-w-md">
           <div className="flex items-start gap-3">
             <div className="flex-1">
               <Field label="What was missing?" error={error}>

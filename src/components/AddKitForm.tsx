@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "./Button";
-import { Field, Select, TextArea, TextInput } from "./Field";
+import { Field, Select, TextArea, TextInput, focusFirstError } from "./Field";
 import { CATEGORY_ORDER, type ItemCategory } from "@/lib/types";
 
 /**
@@ -41,6 +41,7 @@ export function AddKitForm({
   const [error, setError] = useState<string>();
   const [categoryError, setCategoryError] = useState<string>();
   const [added, setAdded] = useState<string>();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const extras = existingCategories.filter((c) => !CATEGORY_ORDER.includes(c));
   const choosingNew = category === NEW_CATEGORY;
@@ -51,6 +52,7 @@ export function AddKitForm({
 
     if (parsed.length === 0) {
       setError("List at least one thing to add.");
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
 
@@ -62,12 +64,14 @@ export function AddKitForm({
           ? `${parsed[0]} is already in your inventory.`
           : "Everything on that list is already in your inventory.",
       );
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
 
     const resolved = choosingNew ? customCategory.trim() : category;
     if (choosingNew && !resolved) {
       setCategoryError("Name the new category.");
+      queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
 
@@ -88,7 +92,12 @@ export function AddKitForm({
   }
 
   return (
-    <form onSubmit={submit} noValidate className="mt-6 border border-rule bg-surface p-5">
+    <form
+      ref={formRef}
+      onSubmit={submit}
+      noValidate
+      className="mt-6 border border-rule bg-surface p-5"
+    >
       <p className="measure mb-4 text-small text-muted">
         List what you own — one per line, or separated by commas. Things you
         pack on trips show up here automatically.

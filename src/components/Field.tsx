@@ -23,6 +23,19 @@ export type ControlProps = {
   "data-invalid": boolean | undefined;
 };
 
+/**
+ * Move focus to the first field that failed validation.
+ *
+ * Call this after a failed submit. Without it the error text appears but focus
+ * stays on <body>, so a keyboard or screen-reader user gets no signal that
+ * anything went wrong and has to hunt the form for it — which is exactly what
+ * the first-run check turned up.
+ */
+export function focusFirstError(form: HTMLFormElement | null): void {
+  const invalid = form?.querySelector<HTMLElement>('[aria-invalid="true"]');
+  invalid?.focus();
+}
+
 type FieldProps = {
   label: string;
   /** Marked visibly, per the brief's "Aisle (optional)" example. */
