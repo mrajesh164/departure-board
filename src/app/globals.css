@@ -107,6 +107,14 @@ body {
     outline-color: var(--color-ink);
   }
 
+  /* In-page step links glide rather than jump — but only for people who
+     haven't asked for less motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
   /* Links are underlined by default; buttons opt out with `no-underline`. */
   a {
     text-decoration: underline;
