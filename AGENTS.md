@@ -152,16 +152,133 @@ destination, or when the image fails to load. The poster is drawn *from the
 climate data* — sun height, palette and rain density all come from the month's
 conditions — so an unknown destination still gets a picture that means something.
 
+## Data model
+
+Three tables. Two hold one person's data and are fenced by row-level security;
+one is shared reference data nobody owns. Read this before writing a migration.
+
+**Clerk user ids are strings, not UUIDs** (`user_2abc...`), so `user_id` is `text`.
+This is the single most likely thing to get wrong: with Supabase third-party auth,
+`auth.uid()` expects a Supabase UUID and will **not** work here. Every policy
+compares against the JWT's subject claim instead:
+
+```sql
+(auth.jwt() ->> 'sub') = user_id
+```
+
+### trips
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | `uuid` pk, `gen_random_uuid()` | replaces `crypto.randomUUID()` |
+| `user_id` | `text not null` | Clerk `sub` |
+| `name` | `text not null` | "Thanksgiving at my parents'" |
+| `destination` | `text not null` | free text, shown on the board |
+| `climate_slug` | `text` | set when the destination matched the table |
+| `manual_band` / `manual_wetness` | `text` | set when it didn't |
+| `start_date` / `end_date` | `date not null` | were `"YYYY-MM-DD"` strings |
+| `items` | `jsonb not null default '[]'` | the checklist — see below |
+| `learned` | `jsonb not null default '{"drop":[],"add":[]}'` | corrections carried forward |
+| `review` | `jsonb` | `neverUsed`, `wishedFor`, `reviewedAt` |
+| `is_example` | `boolean not null default false` | the worked example |
+| `completed_at` | `timestamptz` | set when the trip is finished |
+| `created_at` | `timestamptz not null default now()` | |
+
+**Items stay as `jsonb` rather than becoming a fourth table.** The checklist is
+always read and written whole: no query filters, sorts or joins on a single item,
+and the inventory already aggregates them in JS (`buildInventory`). One row per
+trip also means one RLS check per trip instead of per item. The costs, accepted
+knowingly: no per-item access control (items are only ever reached through their
+trip, so there's nothing to protect separately), and no SQL aggregation across
+items. If a query ever needs to ask "which trips contain a sun hat", revisit this.
+
+### kit_items
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | `uuid` pk, `gen_random_uuid()` | |
+| `user_id` | `text not null` | Clerk `sub` |
+| `label` | `text not null` | |
+| `category` | `text not null` | open-ended; see **Categories are open** |
+| `qty` | `integer` | **nullable on purpose** |
+| `added_at` | `timestamptz not null default now()` | |
+
+Add `unique (user_id, lower(label))`. `buildInventory` keys rows by lowercased
+label and assumes one row per label; Assignment 3 enforced that only in app code,
+and a constraint makes it real.
+
+`qty` being nullable is load-bearing, not laziness — null means nobody ever said
+how many, which the inventory treats differently from a number someone chose. See
+the quantity rules above; **do not add `default 1`.**
+
+### climate_cache — step 6, don't build it yet
+
+Shared, derived, owned by nobody. Keyed by place and month, holding the averaged
+normals plus how many years went into them and when it was fetched. No `user_id`.
+
+It exists because the free weather tier rate-limits per IP, and because normals
+for March in Lisbon are identical for every user on the planet — so one fetch
+should serve everybody. That is also the answer to "where do you call the API and
+why there": on the server, because the result is shared and caching it is the
+whole point.
+
+### Row-level security
+
+Enable RLS on all three. For `trips` and `kit_items`, write all four policies —
+select, insert, update, delete — each `using ((auth.jwt() ->> 'sub') = user_id)`,
+and **insert and update also need `with check` on the same expression**. Without
+`with check`, `using` alone lets someone write a row stamped with another
+person's `user_id`. That omission is exactly what `/security-review` should catch,
+so don't make it by accident.
+
+`climate_cache` is the deliberate contrast: readable by any authenticated user,
+writable by none. Only the server, holding the service role, fills it. Two tables
+fenced per-user and one shared read-only table is a much easier thing to explain
+than three identical policies.
+
+### What the port breaks
+
+Assignment 3's state layer does not survive, and these are the pieces that need
+designing rather than translating:
+
+- **`HAS_TRIPS_SCRIPT` and `data-has-trips` die.** That inline script read
+  `localStorage` during HTML parsing so a returning person never saw the
+  first-visit screen flash. There are three states now — signed out, signed in
+  with nothing, signed in with trips — and the client cannot know which. The
+  server can, so this becomes a server-component decision.
+- **`readState` / `writeState` go away** along with `STORAGE_KEY` and
+  `LEGACY_STORAGE_KEY`. Every page currently mutates one synchronous blob;
+  per-entity async writes need loading and error states that don't exist yet.
+- **Seeding the worked example** (`is_example`) moves server-side, to first
+  sign-in rather than first paint.
+- **Ids** come from the database, not `crypto.randomUUID()` in the browser.
+
 ## Hard constraints
 
 These come from the assignment brief. Do not violate them, and push back if asked to.
 
-- **No external APIs.** None. Weather is a hardcoded climate table in
-  `src/lib/climate.ts`, not a fetch. There is no network call anywhere in this app.
-- **No database, no backend, no accounts, no auth.** All state is `localStorage`.
-- **No new packages** without asking first. Next.js + Tailwind is the whole stack.
-  No state library, no form library, no date library, no UI kit, no icon package.
-- Deployed on Vercel's free Hobby plan.
+**Assignment 4 reversed the first two constraints of Assignment 3.** The old rules
+said no external APIs, no database and no accounts; the brief now requires all
+three. The notes below are the current rules. Where this file still describes
+`localStorage` as "the entire backend", that is Assignment 3's architecture,
+which is being replaced — see **Data model** above.
+
+- **Accounts are required.** Clerk, on **development keys only**; production keys
+  need a domain we don't own. A signed-out visitor must reach nobody's data.
+- **Data lives in Supabase**, with row-level security on every table.
+- **Exactly one external API** does real work. More than one and none of them is
+  load-bearing, which muddies the "where do you call it, and why there" answer
+  the assignment grades. Nothing API-related is built until auth and the database
+  are standing — it's step 6 for a reason.
+- **Keys go in `.env.local`, never in the code or a commit.** `.claude/settings.json`
+  denies `Read(./.env)` and `Read(./.env.*)`, so an agent cannot read them and must
+  not try. Do not add `Bash(cat:*)`, `head`, `tail`, `grep` or `python3` to the
+  allow list: those read `.env.local` straight past the deny rule.
+- **No new packages** beyond what Clerk, Supabase and Playwright require, without
+  asking first. Still no state library, no form library, no date library, no UI
+  kit, no icon package.
+- Deployed on Vercel's free Hobby plan. Work on a branch; `main` holds the
+  Assignment 3 submission until the work is reviewed and merged.
 - `AGENTS.md` (this file) is the context file. There must be no `CLAUDE.md`.
 
 ## Stack notes that actually bite
@@ -258,7 +375,26 @@ an icon and a tint — **never an accent-coloured button**.
 
 ## Requirements this app is graded on
 
-Keep these true as the code changes:
+Assignment 4 adds these, and they are the ones that decide the grade:
+
+- **Accounts:** sign up, sign in, sign out with Clerk. A signed-out visitor sees
+  nobody's data — check it signed out, don't assume it.
+- **Data in Supabase**, row-level security on every table, each person seeing only
+  their own rows.
+- **One external API**, with designed states for loading, nothing found, and the
+  API being down.
+- **Persistence:** what you save is still there after signing out and back in, on
+  another device. This is the requirement that makes accounts worth having here —
+  pack on a laptop over several evenings, tick items off on a phone at the suitcase.
+- **Keys** in environment variables, never in the code or the repository, with a
+  deny rule for `.env` files.
+- **One Playwright test** proving two users can't see each other's data, *watched
+  failing* before it passes. Break RLS on purpose to see it fail.
+- **`/security-review`** run on the branch, findings handled.
+- **Deployed on Vercel**, where a classmate can make an account and use it.
+- A commit history that shows progress. A one-shot submission is marked incomplete.
+
+Assignment 3's requirements still hold — the UI/UX work is not superseded:
 
 - A page per flow step with shared navigation, and it's clear where you are.
 - First visit gives something useful immediately; no dead-end empty screen.
