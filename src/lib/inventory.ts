@@ -16,9 +16,27 @@
 import type { ItemCategory, KitItem, Trip } from "./types";
 import { phaseOf } from "./trips";
 
+/**
+ * Where a row's quantity came from. Every row has a number; they are not all
+ * worth the same amount of trust, and the difference decides whether the number
+ * is allowed to warn you about anything.
+ *
+ * - `counted`  — you set it with the stepper, or typed "x3" when adding. True.
+ * - `inferred` — the most you've ever actually packed at once. A floor: tick
+ *                "Socks × 6" off a list and you demonstrably own six pairs.
+ * - `assumed`  — 1, because it's been on a list but never ticked, so there's no
+ *                evidence either way. Shown, never acted on.
+ */
+export type QtySource = "counted" | "inferred" | "assumed";
+
 export type KitEntry = {
   label: string;
   category: ItemCategory;
+  /** How many you own. Always present; see `qtySource` for how much to trust it. */
+  qty: number;
+  qtySource: QtySource;
+  /** The largest quantity ever ticked off a list. 0 if it never has been. */
+  packedMax: number;
   /** How many trips this has appeared on. */
   onTrips: number;
   /** How many times you actually checked it off. */
@@ -39,8 +57,25 @@ export type KitEntry = {
   lastSeenOn?: string;
 };
 
+/**
+ * Resolve the one number a row shows, and say where it came from.
+ *
+ * Order matters: something you counted yourself beats anything we could work
+ * out, and evidence from a packed list beats a bare assumption.
+ */
+function resolveQty(
+  counted: number | undefined,
+  packedMax: number,
+): { qty: number; qtySource: QtySource } {
+  if (counted !== undefined) return { qty: counted, qtySource: "counted" };
+  if (packedMax > 0) return { qty: packedMax, qtySource: "inferred" };
+  return { qty: 1, qtySource: "assumed" };
+}
+
 export function buildInventory(trips: Trip[], kit: KitItem[] = []): KitEntry[] {
   const byLabel = new Map<string, KitEntry>();
+  /** Counts you set explicitly, kept aside until every trip has been read. */
+  const counted = new Map<string, number>();
 
   const touch = (label: string, category: ItemCategory): KitEntry => {
     const key = label.toLowerCase();
@@ -49,6 +84,9 @@ export function buildInventory(trips: Trip[], kit: KitItem[] = []): KitEntry[] {
       entry = {
         label,
         category,
+        qty: 1,
+        qtySource: "assumed",
+        packedMax: 0,
         onTrips: 0,
         packedTimes: 0,
         unpackedOnFinished: 0,
@@ -76,8 +114,12 @@ export function buildInventory(trips: Trip[], kit: KitItem[] = []): KitEntry[] {
       const entry = touch(item.label, item.category);
       entry.onTrips += 1;
       entry.lastSeenOn = trip.name;
-      if (item.packed) entry.packedTimes += 1;
-      else if (finished) entry.unpackedOnFinished += 1;
+      if (item.packed) {
+        entry.packedTimes += 1;
+        /* Ticking a row off means the whole quantity went in the bag, so this
+           is proof of ownership rather than a guess at it. */
+        entry.packedMax = Math.max(entry.packedMax, item.qty);
+      } else if (finished) entry.unpackedOnFinished += 1;
       if (item.source === "manual") entry.yourOwn = true;
       if (item.source === "learned") entry.requested = true;
     }
@@ -103,11 +145,46 @@ export function buildInventory(trips: Trip[], kit: KitItem[] = []): KitEntry[] {
     entry.kitId = own.id;
     // A category you chose beats one inferred from a trip item.
     entry.category = own.category;
+    if (own.qty !== undefined) counted.set(own.label.toLowerCase(), own.qty);
+  }
+
+  /* Quantities resolve last, because an inferred count needs every trip read
+     first — the floor is the highest you've packed across all of them. */
+  for (const [key, entry] of byLabel) {
+    Object.assign(entry, resolveQty(counted.get(key), entry.packedMax));
   }
 
   return [...byLabel.values()].sort(
     (a, b) => b.packedTimes - a.packedTimes || b.onTrips - a.onTrips || a.label.localeCompare(b.label),
   );
+}
+
+export type OwnedCount = { qty: number; qtySource: QtySource };
+
+/** Lowercased label → how many you own, for looking up while packing. */
+export function ownedCounts(entries: KitEntry[]): Map<string, OwnedCount> {
+  return new Map(
+    entries.map((e) => [
+      e.label.toLowerCase(),
+      { qty: e.qty, qtySource: e.qtySource },
+    ]),
+  );
+}
+
+/**
+ * How far a list outruns your kit, when that's worth saying at all.
+ *
+ * The guard on `assumed` is the whole reason this is a function and not a
+ * comparison. Every item nobody has counted sits at 1, so without it a six-day
+ * trip would announce a shortfall on every single row and the warning would
+ * mean nothing. Only a number with something behind it gets to speak.
+ */
+export function shortfall(
+  want: number,
+  owned: OwnedCount | undefined,
+): number | undefined {
+  if (!owned || owned.qtySource === "assumed") return undefined;
+  return want > owned.qty ? want - owned.qty : undefined;
 }
 
 export type KitSummary = {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTrips } from "@/app/providers";
 import { Badge, Label, SectionRule } from "@/components/Card";
 import { AddKitForm } from "@/components/AddKitForm";
-import { QuietAction, SegmentedControl } from "@/components/Controls";
+import { QuietAction, SegmentedControl, Stepper } from "@/components/Controls";
 import { styleFor } from "@/components/categoryStyle";
 import { categoriesPresent, type ItemCategory } from "@/lib/types";
 import { buildInventory, type KitEntry } from "@/lib/inventory";
@@ -33,7 +33,8 @@ import { formatDateRange, phaseOf, sortForBoard } from "@/lib/trips";
 type View = "most" | "unused";
 
 export default function InventoryPage() {
-  const { trips, kit, ready, addKitItems, removeKitItem } = useTrips();
+  const { trips, kit, ready, addKitItems, setKitQty, removeKitItem } =
+    useTrips();
   const [view, setView] = useState<View>("most");
 
   /* Guarded on `ready` because these reach phaseOf -> todayISO -> new Date(),
@@ -73,9 +74,14 @@ export default function InventoryPage() {
       <h1 className="font-display text-heading text-ink">Your Inventory</h1>
 
       <AddKitForm
-        existingLabels={entries.map((e) => e.label)}
+        existing={entries.map((e) => ({
+          label: e.label,
+          qty: e.qty,
+          category: e.category,
+        }))}
         existingCategories={categories}
         onAdd={addKitItems}
+        onSetQty={setKitQty}
       />
 
       {entries.length === 0 ? (
@@ -115,6 +121,7 @@ export default function InventoryPage() {
                 key={category}
                 category={category}
                 entries={ordered.filter((e) => e.category === category)}
+                onSetQty={setKitQty}
                 onRemove={removeKitItem}
               />
             ))}
@@ -181,10 +188,12 @@ export default function InventoryPage() {
 function KitCategory({
   category,
   entries,
+  onSetQty,
   onRemove,
 }: {
   category: ItemCategory;
   entries: KitEntry[];
+  onSetQty: (label: string, category: ItemCategory, qty: number) => void;
   onRemove: (id: string) => void;
 }) {
   if (entries.length === 0) return null;
@@ -219,7 +228,7 @@ function KitCategory({
         {entries.map((entry) => (
           <li
             key={entry.label}
-            className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-rule py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_150px_220px_72px]"
+            className="group grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 border-b border-rule py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_185px_175px_72px_92px]"
           >
             <span
               className={`text-body ${
@@ -237,6 +246,15 @@ function KitCategory({
                 : entry.packedTimes === 0
                   ? `Never packed, on ${entry.onTrips} ${entry.onTrips === 1 ? "list" : "lists"}`
                   : `Packed on ${entry.packedTimes} of ${entry.onTrips} ${entry.onTrips === 1 ? "trip" : "trips"}`}
+              {/* Where the number beside this row came from, said only when
+                  it's something other than a bare assumption. A count you set
+                  yourself needs no footnote; a 1 nobody chose doesn't deserve
+                  one. */}
+              {entry.qtySource === "inferred" && (
+                <span className="block text-muted">
+                  You&apos;ve packed {entry.qty}
+                </span>
+              )}
             </span>
 
             <span className="flex flex-wrap items-center gap-2 sm:justify-start">
@@ -259,6 +277,18 @@ function KitCategory({
                   Remove
                 </QuietAction>
               )}
+            </span>
+
+            {/* The same stepper the packing list uses, on every row whether or
+                not this is something you've explicitly listed. Nudging it is
+                how a derived row becomes a counted one — there's no separate
+                step for claiming something as yours. */}
+            <span className="flex justify-end sm:justify-self-end">
+              <Stepper
+                value={entry.qty}
+                onChange={(qty) => onSetQty(entry.label, entry.category, qty)}
+                noun={entry.label.toLowerCase()}
+              />
             </span>
           </li>
         ))}

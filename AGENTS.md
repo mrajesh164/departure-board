@@ -53,7 +53,7 @@ already exist.
 | New trip | `/trips/new` | The form. Also serves `?from=<id>` to repeat a finished trip with its corrections applied. |
 | Upcoming | `/trips` | Upcoming trips only, soonest first. Starters on a true first visit. |
 | Previous | `/previous` | Finished trips: what was packed, what each taught the next list, and "Pack this again". Lives at `/previous`, not `/trips/previous`, so it can't collide with a trip id. |
-| Inventory | `/inventory` | Things you list yourself (`kit` in storage) merged with everything trips reveal. Sorts by Packed most, or filters to Never used. Also lists what you took per finished trip. |
+| Inventory | `/inventory` | Things you list yourself (`kit` in storage) merged with everything trips reveal. Every row carries a quantity and a stepper to set it. Sorts by Packed most, or filters to Never used. Also lists what you took per finished trip. |
 
 A trip (`/trips/[id]`) and its review belong to the Upcoming tab, since that's
 where you came from.
@@ -80,6 +80,35 @@ read-only report.
 plus `trip.learned` across all trips, then merges in `state.kit` — the things
 someone listed directly. Keep that split: trips remain the source of truth for
 what has been *packed*, and `kit` only adds what hasn't been packed yet.
+
+**Every inventory row has a quantity, and they're not equally trustworthy.**
+`KitEntry.qtySource` says which kind a number is, and `resolveQty` picks it in
+this order:
+
+| Source | Where the number comes from | Trust |
+| --- | --- | --- |
+| `counted` | `KitItem.qty` — the stepper, or an `x3` suffix when adding | True |
+| `inferred` | `packedMax`, the most ever ticked off a list at once | A floor |
+| `assumed` | `1`, because it's been on a list but never ticked | None |
+
+`KitItem.qty` is **optional on purpose**. Undefined means nobody ever said, which
+is the common case (pasted lists, and items auto-added by `addItem`). Don't
+default it to 1 on write — the inventory infers a better number from trips, and
+collapsing the two would make an assumption indistinguishable from a fact.
+
+Two things depend on that distinction:
+
+- `setKitQty` **creates** the `KitItem` when a label only exists as a derived
+  row. Nudging a stepper is the whole "this is mine" flow; there is no separate
+  claim step.
+- `shortfall()` ignores `assumed` numbers. Everything uncounted sits at 1, so
+  without that guard a week-long trip would warn on every row and the warning
+  would stop meaning anything. Only `counted` and `inferred` may speak.
+
+Listing something already in the inventory **adds up** rather than erroring — to
+the count given, or one more than the row shows. The old "already in your
+inventory" error was the wrong answer to a reasonable request (see the Assignment
+3 feedback: owning two t-shirts was unsayable).
 
 **Categories are open.** `ItemCategory` is a plain `string`; `KNOWN_CATEGORIES`
 holds the seven defaults and `categoriesPresent()` orders known-then-custom. Use

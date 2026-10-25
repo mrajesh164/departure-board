@@ -72,6 +72,14 @@ function isKitItem(value: unknown): value is KitItem {
   return typeof k.id === "string" && typeof k.label === "string";
 }
 
+/** Keeps a stored count inside the range the stepper can reach, or drops it. */
+function validQty(qty: unknown): number | undefined {
+  if (typeof qty !== "number" || !Number.isFinite(qty)) return undefined;
+  const whole = Math.round(qty);
+  if (whole < 1) return undefined;
+  return Math.min(99, whole);
+}
+
 /**
  * Read and validate. Anything malformed is discarded rather than crashing the
  * app — a person whose storage got mangled should land on the first visit, not
@@ -108,7 +116,17 @@ export function readState(): StoredState {
           add: (t.learned?.add ?? []).map(fixLabel),
         },
       })),
-      kit: Array.isArray(kit) ? kit.filter(isKitItem) : [],
+      /* `qty` arrived after `kit` did, so most stored entries don't have one.
+         Anything absent or nonsensical is left undefined rather than coerced to
+         1 — undefined means "you never said", which the inventory treats
+         differently from a number you chose. */
+      kit: Array.isArray(kit)
+        ? kit.filter(isKitItem).map((k) => ({
+            ...k,
+            label: fixLabel(k.label),
+            qty: validQty(k.qty),
+          }))
+        : [],
     };
 
     if (migrating) writeState(state);

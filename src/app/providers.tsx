@@ -27,10 +27,19 @@ import { readState, writeState } from "@/lib/storage";
 import {
   EMPTY_STATE,
   type Item,
+  type ItemCategory,
   type KitItem,
   type StoredState,
   type Trip,
 } from "@/lib/types";
+
+/** One line of an inventory add: a label, and a count only if you gave one. */
+export type KitAddition = { label: string; qty?: number };
+
+/** The range the stepper can reach, applied anywhere a count is written. */
+function clampQty(qty: number): number {
+  return Math.max(1, Math.min(99, Math.round(qty)));
+}
 
 type TripsContextValue = {
   trips: Trip[];
@@ -47,7 +56,13 @@ type TripsContextValue = {
   removeItem: (tripId: string, itemId: string) => void;
   /** Things you own, added to your inventory directly. */
   kit: KitItem[];
-  addKitItems: (labels: string[], category: string) => void;
+  addKitItems: (entries: KitAddition[], category: string) => void;
+  /**
+   * Record how many of something you own. Creates the inventory entry when
+   * there isn't one, so a row derived purely from trip history can be counted
+   * without a separate "this is mine" step.
+   */
+  setKitQty: (label: string, category: ItemCategory, qty: number) => void;
   removeKitItem: (id: string) => void;
   resetEverything: () => void;
 };
@@ -212,29 +227,73 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
   /**
    * Add several at once: people list what they own in one go rather than one
    * field at a time. Anything already in the inventory is skipped silently
-   * rather than erroring — pasting an overlapping list is normal.
+   * rather than erroring — pasting an overlapping list is normal, and the form
+   * routes genuine duplicates to setKitQty so they add up instead.
    */
-  const addKitItems = useCallback((labels: string[], category: string) => {
-    setState((prev) => {
-      const existing = new Set(prev.kit.map((k) => k.label.toLowerCase()));
-      const additions: KitItem[] = [];
-      for (const label of labels) {
-        const trimmed = label.trim();
-        if (!trimmed || existing.has(trimmed.toLowerCase())) continue;
-        existing.add(trimmed.toLowerCase());
-        additions.push({
-          id: crypto.randomUUID(),
-          label: trimmed,
-          category: category.trim() || "Extras",
-          addedAt: new Date().toISOString(),
-        });
-      }
-      if (additions.length === 0) return prev;
-      const next = { ...prev, kit: [...prev.kit, ...additions] };
-      writeState(next);
-      return next;
-    });
-  }, []);
+  const addKitItems = useCallback(
+    (entries: KitAddition[], category: string) => {
+      setState((prev) => {
+        const existing = new Set(prev.kit.map((k) => k.label.toLowerCase()));
+        const additions: KitItem[] = [];
+        for (const entry of entries) {
+          const trimmed = entry.label.trim();
+          if (!trimmed || existing.has(trimmed.toLowerCase())) continue;
+          existing.add(trimmed.toLowerCase());
+          additions.push({
+            id: crypto.randomUUID(),
+            label: trimmed,
+            category: category.trim() || "Extras",
+            /* Left undefined unless they actually said a number, so the
+               inventory can infer one from trips instead of trusting a 1
+               nobody chose. */
+            qty: entry.qty === undefined ? undefined : clampQty(entry.qty),
+            addedAt: new Date().toISOString(),
+          });
+        }
+        if (additions.length === 0) return prev;
+        const next = { ...prev, kit: [...prev.kit, ...additions] };
+        writeState(next);
+        return next;
+      });
+    },
+    [],
+  );
+
+  /**
+   * Set how many you own.
+   *
+   * The interesting case is a label with no inventory entry at all — a row the
+   * inventory derived from trip history. Touching its stepper is what turns an
+   * inference into a fact, so this creates the entry rather than refusing. That
+   * single gesture is the whole "claim this item" flow.
+   */
+  const setKitQty = useCallback(
+    (label: string, category: ItemCategory, qty: number) => {
+      const clamped = clampQty(qty);
+      setState((prev) => {
+        const key = label.toLowerCase();
+        const known = prev.kit.some((k) => k.label.toLowerCase() === key);
+        const kit = known
+          ? prev.kit.map((k) =>
+              k.label.toLowerCase() === key ? { ...k, qty: clamped } : k,
+            )
+          : [
+              ...prev.kit,
+              {
+                id: crypto.randomUUID(),
+                label,
+                category,
+                qty: clamped,
+                addedAt: new Date().toISOString(),
+              },
+            ];
+        const next = { ...prev, kit };
+        writeState(next);
+        return next;
+      });
+    },
+    [],
+  );
 
   const removeKitItem = useCallback((id: string) => {
     setState((prev) => {
@@ -261,6 +320,7 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       kit: state.kit,
       addKitItems,
+      setKitQty,
       removeKitItem,
       resetEverything,
     }),
@@ -276,6 +336,7 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       state.kit,
       addKitItems,
+      setKitQty,
       removeKitItem,
       resetEverything,
     ],

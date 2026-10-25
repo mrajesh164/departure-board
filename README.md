@@ -118,11 +118,37 @@ other three are ways of looking at trips that already exist.
 | `/trips/[id]` | Core task | **The checklist.** Category sections with their own tallies, quantity steppers on every row, a "hide what's packed" filter that survives a reload, and a **Done** exit. |
 | `/trips/[id]/review` | Coming back | Two questions after the trip, which write `trip.learned`. |
 | `/previous` | Coming back | **Previous Trips.** What you took, what each taught the next list, and "Pack this again". |
-| `/inventory` | Coming back | **Your Inventory.** Everything you own: things you list yourself plus everything trips reveal. Sorts by **Packed most**, or filters to **Never used** — on a list at least once and never actually packed. Also lists what you took on each finished trip. |
+| `/inventory` | Coming back | **Your Inventory.** Everything you own: things you list yourself plus everything trips reveal, each with a quantity. Sorts by **Packed most**, or filters to **Never used** — on a list at least once and never actually packed. Also lists what you took on each finished trip. |
 
 Categories are open-ended. The seven defaults cover most packing, but both add-item forms
 end in "A new category…", and an invented category gets its own colour derived from its
 name.
+
+## Quantities
+
+A packing list has always counted — "Socks × 6" — but the inventory didn't, so owning two
+t-shirts was a thing you couldn't say. Worse, the obvious way to say it (type "T-shirt"
+again) was rejected as a duplicate. The two halves of the app disagreed about what an item
+*is*: a line on a list has a number, a thing you own apparently doesn't.
+
+Now every inventory row has a quantity, set with the same stepper the checklist uses. The
+number comes from one of three places:
+
+| | Where it comes from |
+|---|---|
+| **Counted** | You set it — the stepper, or an `x3` on the end when adding. |
+| **Inferred** | The most you've ever *packed at once*. Tick "Socks × 6" off a list and you demonstrably own six pairs. Shown as "You've packed 6". |
+| **Assumed** | `1`. It's been on a list but never ticked, so there's no evidence either way. |
+
+So every row shows a number straight away without anyone filling in a form, and nothing is
+invented — the inferred floor comes from what you actually packed. Nudging any stepper
+promotes that row to **Counted**, which is also what claims a derived row as yours; there's
+no separate step for that.
+
+The payoff is on the checklist: when a list asks for more than you own, the row says
+**"You own 2"** under the label. That only fires on counted and inferred numbers. Assumed
+ones stay silent — everything uncounted sits at 1, so warning on those would light up every
+row of a week-long trip and mean nothing.
 
 ## How the list gets built
 
@@ -171,11 +197,14 @@ drawn.
 | Add item | already on the list | `Socks are already on this list.` |
 | New category | empty name | `Name the new category.` |
 | Inventory | nothing listed | `List at least one thing to add.` |
-| Inventory | all duplicates | `Socks is already in your inventory.` |
 | Review | empty wish | `Name the thing you wished you'd brought.` |
 
 A destination that isn't in the climate table is deliberately **not** an error — the form
 reveals a conditions picker instead, so any destination in the world still works.
+
+Listing something already in your inventory used to be an error too. It isn't any more: a
+repeat means you own another one, so the count goes up and the form says `Socks → 3`. See
+**Quantities** below.
 
 ## Tech
 

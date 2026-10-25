@@ -23,8 +23,8 @@ import {
   packedCount,
   phaseOf,
 } from "@/lib/trips";
-import { categoriesPresent } from "@/lib/types";
-import { buildInventory } from "@/lib/inventory";
+import { categoriesPresent, type Item } from "@/lib/types";
+import { buildInventory, ownedCounts, shortfall } from "@/lib/inventory";
 
 /**
  * The checklist. The core task, and the screen this app exists for.
@@ -127,9 +127,17 @@ function Checklist() {
   /* Everything in the inventory that isn't already on this list, so the picker
      only ever offers something useful. */
   const onThisList = new Set(trip.items.map((i) => i.label.toLowerCase()));
-  const inventoryOptions = buildInventory(trips, kit)
+  const inventory = buildInventory(trips, kit);
+  const inventoryOptions = inventory
     .filter((e) => !e.dropped && !onThisList.has(e.label.toLowerCase()))
     .map((e) => ({ label: e.label, category: e.category }));
+
+  /* What you own, for the rows where the list asks for more than that. */
+  const owned = ownedCounts(inventory);
+  const ownedFor = (item: Item) =>
+    shortfall(item.qty, owned.get(item.label.toLowerCase())) !== undefined
+      ? owned.get(item.label.toLowerCase())!.qty
+      : undefined;
 
   const visible = hidePacked ? trip.items.filter((i) => !i.packed) : trip.items;
 
@@ -233,6 +241,7 @@ function Checklist() {
             key={category}
             category={category}
             items={visible.filter((i) => i.category === category)}
+            ownedFor={ownedFor}
             onToggle={(itemId) => toggleItem(trip.id, itemId)}
             onQty={(itemId, qty) => setItemQty(trip.id, itemId, qty)}
             onRemove={(itemId) => removeItem(trip.id, itemId)}

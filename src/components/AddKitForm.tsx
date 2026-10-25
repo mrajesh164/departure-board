@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Button } from "./Button";
 import { Field, Select, TextArea, TextInput, focusFirstError } from "./Field";
 import { CATEGORY_ORDER, type ItemCategory } from "@/lib/types";
+import type { KitAddition } from "@/app/providers";
 
 /**
  * Add things to your inventory, several at a time.
@@ -18,22 +19,39 @@ import { CATEGORY_ORDER, type ItemCategory } from "@/lib/types";
 
 const NEW_CATEGORY = "__new__";
 
-/** One per line, or comma separated, or both. */
-function parseList(raw: string): string[] {
+/**
+ * One per line, or comma separated, or both — with an optional count on the
+ * end: "T-shirt x3", "Wool socks × 2".
+ *
+ * The count is a suffix rather than its own field on purpose. This textarea
+ * exists so a list can be pasted straight out of notes, and a quantity input
+ * beside it would break that in exchange for something the stepper on each row
+ * already does better.
+ */
+function parseEntries(raw: string): KitAddition[] {
   return raw
     .split(/[\n,]/)
     .map((part) => part.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((part) => {
+      const match = /^(.*?)\s*[x×]\s*(\d{1,2})$/i.exec(part);
+      if (!match || !match[1]) return { label: part };
+      return { label: match[1].trim(), qty: Number(match[2]) };
+    })
+    .filter((entry) => entry.label.length > 0);
 }
 
 export function AddKitForm({
-  existingLabels,
+  existing,
   existingCategories,
   onAdd,
+  onSetQty,
 }: {
-  existingLabels: string[];
+  /** Every row already in the inventory, with the count it currently shows. */
+  existing: { label: string; qty: number; category: ItemCategory }[];
   existingCategories: ItemCategory[];
-  onAdd: (labels: string[], category: string) => void;
+  onAdd: (entries: KitAddition[], category: string) => void;
+  onSetQty: (label: string, category: ItemCategory, qty: number) => void;
 }) {
   const [raw, setRaw] = useState("");
   const [category, setCategory] = useState<string>("Clothing");
@@ -45,25 +63,13 @@ export function AddKitForm({
 
   const extras = existingCategories.filter((c) => !CATEGORY_ORDER.includes(c));
   const choosingNew = category === NEW_CATEGORY;
-  const parsed = parseList(raw);
+  const parsed = parseEntries(raw);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
 
     if (parsed.length === 0) {
       setError("List at least one thing to add.");
-      queueMicrotask(() => focusFirstError(formRef.current));
-      return;
-    }
-
-    const known = new Set(existingLabels.map((l) => l.toLowerCase()));
-    const fresh = parsed.filter((l) => !known.has(l.toLowerCase()));
-    if (fresh.length === 0) {
-      setError(
-        parsed.length === 1
-          ? `${parsed[0]} is already in your inventory.`
-          : "Everything on that list is already in your inventory.",
-      );
       queueMicrotask(() => focusFirstError(formRef.current));
       return;
     }
@@ -75,15 +81,44 @@ export function AddKitForm({
       return;
     }
 
-    onAdd(fresh, resolved);
+    /**
+     * Listing something twice used to be an error, which was the wrong answer
+     * to the right question: someone typing "T-shirt" when a t-shirt is already
+     * there is telling us they own another one. So a repeat adds up — to the
+     * count they gave, or one more than the row shows.
+     */
+    const known = new Map(existing.map((e) => [e.label.toLowerCase(), e]));
+    const fresh: KitAddition[] = [];
+    const counted: string[] = [];
+
+    for (const entry of parsed) {
+      const current = known.get(entry.label.toLowerCase());
+      if (!current) {
+        fresh.push(entry);
+        continue;
+      }
+      const next = entry.qty ?? current.qty + 1;
+      if (next === current.qty) continue;
+      /* Its own category, not whatever the select happens to be showing — this
+         row already has a home and the add form isn't choosing it. */
+      onSetQty(current.label, current.category, next);
+      counted.push(`${current.label} → ${next}`);
+    }
+
+    if (fresh.length > 0) onAdd(fresh, resolved);
+
     setRaw("");
     setError(undefined);
     setCategoryError(undefined);
+
+    const said = [
+      fresh.length > 0 ? `Added ${fresh.length} to ${resolved}` : null,
+      counted.length > 0 ? counted.join(", ") : null,
+    ].filter(Boolean);
     setAdded(
-      `Added ${fresh.length} to ${resolved}` +
-        (fresh.length < parsed.length
-          ? ` · ${parsed.length - fresh.length} already there`
-          : ""),
+      said.length > 0
+        ? said.join(" · ")
+        : "Already in your inventory at that count.",
     );
     if (choosingNew) {
       setCategory(resolved);
@@ -99,8 +134,10 @@ export function AddKitForm({
       className="mt-6 border border-rule bg-surface p-5"
     >
       <p className="measure mb-4 text-small text-muted">
-        List what you own — one per line, or separated by commas. Things you
-        pack on trips show up here automatically.
+        List what you own — one per line, or separated by commas, with{" "}
+        <span className="whitespace-nowrap">&ldquo;x2&rdquo;</span> on the end if
+        you have more than one. Things you pack on trips show up here
+        automatically.
       </p>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -114,7 +151,7 @@ export function AddKitForm({
                 {...props}
                 value={raw}
                 rows={3}
-                placeholder={"Rain shell\nHiking boots\nHead torch"}
+                placeholder={"Rain shell\nHiking boots\nWool socks x2"}
                 onChange={(e) => {
                   setRaw(e.target.value);
                   if (error) setError(undefined);

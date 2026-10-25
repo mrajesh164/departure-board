@@ -109,6 +109,16 @@ export type KitItem = {
   id: string;
   label: string;
   category: ItemCategory;
+  /**
+   * How many you own — set only when you've actually said so.
+   *
+   * Undefined is meaningful and is the common case: an item added by pasting a
+   * list, or added automatically because you packed it, tells us you own the
+   * thing but nothing about how many. The inventory fills that gap by inferring
+   * from what you've packed rather than inventing a number here. See
+   * `resolveQty` in lib/inventory.ts.
+   */
+  qty?: number;
   addedAt: string;
 };
 

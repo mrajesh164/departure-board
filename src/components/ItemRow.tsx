@@ -31,11 +31,18 @@ const GRID =
 
 export function ItemRow({
   item,
+  owned,
   onToggle,
   onQty,
   onRemove,
 }: {
   item: Item;
+  /**
+   * How many you own, when the list asks for more than that and the number is
+   * worth trusting. Undefined covers both "no shortfall" and "we're only
+   * assuming one" — see `shortfall` in lib/inventory.ts, which is what decides.
+   */
+  owned?: number;
   onToggle: () => void;
   onQty: (qty: number) => void;
   onRemove: () => void;
@@ -48,16 +55,28 @@ export function ItemRow({
         onChange={onToggle}
       />
 
-      <label
-        htmlFor={`item-${item.id}`}
-        className={`cursor-pointer text-body ${
-          item.packed
-            ? "text-muted line-through decoration-rule-strong"
-            : "text-ink"
-        }`}
-      >
-        {item.label}
-      </label>
+      <div className="min-w-0">
+        <label
+          htmlFor={`item-${item.id}`}
+          className={`cursor-pointer text-body ${
+            item.packed
+              ? "text-muted line-through decoration-rule-strong"
+              : "text-ink"
+          }`}
+        >
+          {item.label}
+        </label>
+
+        {/* The list wants more of this than your inventory says you have, which
+            is a laundry problem worth knowing about before you're standing at
+            the suitcase. It sits outside the <label> so reading it doesn't tick
+            the box. */}
+        {owned !== undefined && !item.packed && (
+          <span className="block text-small text-warning">
+            You own {owned}
+          </span>
+        )}
+      </div>
 
       <span className="hidden justify-self-end sm:block">
         <QuietAction

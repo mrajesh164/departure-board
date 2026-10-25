@@ -20,12 +20,15 @@ import type { Item, ItemCategory } from "@/lib/types";
 export function CategorySection({
   category,
   items,
+  ownedFor,
   onToggle,
   onQty,
   onRemove,
 }: {
   category: ItemCategory;
   items: Item[];
+  /** How many of this you own, when that's short of what the list wants. */
+  ownedFor?: (item: Item) => number | undefined;
   onToggle: (itemId: string) => void;
   onQty: (itemId: string, qty: number) => void;
   onRemove: (itemId: string) => void;
@@ -75,6 +78,7 @@ export function CategorySection({
           <ItemRow
             key={item.id}
             item={item}
+            owned={ownedFor?.(item)}
             onToggle={() => onToggle(item.id)}
             onQty={(qty) => onQty(item.id, qty)}
             onRemove={() => onRemove(item.id)}
