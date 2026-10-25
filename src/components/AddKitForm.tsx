@@ -134,10 +134,9 @@ export function AddKitForm({
       className="mt-6 border border-rule bg-surface p-5"
     >
       <p className="measure mb-4 text-small text-muted">
-        List what you own — one per line, or separated by commas, with{" "}
-        <span className="whitespace-nowrap">&ldquo;x2&rdquo;</span> on the end if
-        you have more than one. Things you pack on trips show up here
-        automatically.
+        One per line, or separated by commas — add{" "}
+        <span className="whitespace-nowrap">&ldquo;x2&rdquo;</span> for more than
+        one. Things you pack show up here too.
       </p>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">

@@ -32,6 +32,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-has-trips="no"
+      /* globals.css sets scroll-behavior: smooth for in-page step links. This
+         tells Next that's deliberate, so it stops warning and stops applying it
+         to route changes — gliding between anchors is nice, gliding on every
+         navigation is not. */
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${fraunces.variable} ${sourceSans.variable} h-full antialiased`}
     >

@@ -70,6 +70,7 @@ flowchart TD
     subgraph Actions["While you pack"]
         Check["Check off, or uncheck"]
         Qty["Quantity − 7 +"]
+        Own["You own 1 · when the list wants more"]
         AddItem["Add your own, or pick from your inventory"]
         Hide["Hide what is packed"]
     end
@@ -84,10 +85,11 @@ Part-packed is a first-class state rather than an in-between. Packing over sever
 sessions is the shortest-cycle reason anyone reopens this app, so Upcoming surfaces it
 ("Lisbon — 7 items left") and the list reopens exactly where it was left, filter included.
 
-Items group into sections by category, each with its own tally, and every row says *why*
-it's there — "march in lisbon" for something the climate table asked for, "6 days" for a
-quantity that came from the trip length, "you added this last time" for something learned.
-The tool explains its reasoning instead of looking like magic.
+Items group into sections by category, each with its own tally. Rows carried a per-item
+reason once — "march in lisbon", "6 days" — and it went: the same line repeated down every
+climate-driven row and said nothing the header hadn't already said better, since the header
+states the month and the conditions once. The one thing a row still says for itself is
+**"You own 1"**, when the list asks for more of something than your inventory has.
 
 Both directions teach the list. Add an item by hand and it's written to `learned.add`;
 remove a suggested one and it goes to `learned.drop`. After two or three runs of a trip
@@ -128,8 +130,10 @@ person already typed. A failed submit also moves focus to the first invalid fiel
 | Add item | already on the list | `Socks are already on this list.` |
 | New category | empty name | `Name the new category.` |
 | Inventory | nothing listed | `List at least one thing to add.` |
-| Inventory | all duplicates | `Socks is already in your inventory.` |
 | Review | empty wish | `Name the thing you wished you'd brought.` |
 
 A destination that isn't in the climate table is deliberately **not** an error. The form
 reveals a conditions picker instead, so any destination in the world still works.
+
+Listing something already in your inventory isn't one either. A repeat means you own
+another, so the count goes up and the form reports `Socks → 3`.
