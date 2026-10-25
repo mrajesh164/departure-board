@@ -21,11 +21,18 @@ import { phaseOf } from "./trips";
  * worth the same amount of trust, and the difference decides whether the number
  * is allowed to warn you about anything.
  *
- * - `counted`  — you set it with the stepper, or typed "x3" when adding. True.
+ * - `counted`  — you set it: the stepper, an "x3" when adding, or the 1 that
+ *                anything added through the inventory form starts at. True.
  * - `inferred` — the most you've ever actually packed at once. A floor: tick
  *                "Socks × 6" off a list and you demonstrably own six pairs.
  * - `assumed`  — 1, because it's been on a list but never ticked, so there's no
  *                evidence either way. Shown, never acted on.
+ *
+ * Only the first of those is a thing someone said. The 1 behind an `assumed`
+ * row was chosen by nobody, which is why it never warns: a new person's first
+ * trip asks for "Underwear × 8" against an empty inventory, and warning on
+ * every such row before they've done anything would be the whole feature
+ * crying wolf on day one.
  */
 export type QtySource = "counted" | "inferred" | "assumed";
 
@@ -60,14 +67,20 @@ export type KitEntry = {
 /**
  * Resolve the one number a row shows, and say where it came from.
  *
- * Order matters: something you counted yourself beats anything we could work
- * out, and evidence from a packed list beats a bare assumption.
+ * The number is the greater of what you said and what you've proved, because
+ * you cannot own fewer of something than you have packed at once. That matters
+ * most for the count everything starts at: type "Socks", accept the 1, then
+ * tick "Socks × 6" off a list, and the row corrects itself to 6 instead of
+ * holding a stale number you set before you knew better. Nothing you've
+ * demonstrated is ever silently overwritten by an older, smaller claim.
  */
 function resolveQty(
   counted: number | undefined,
   packedMax: number,
 ): { qty: number; qtySource: QtySource } {
-  if (counted !== undefined) return { qty: counted, qtySource: "counted" };
+  if (counted !== undefined && counted >= packedMax) {
+    return { qty: counted, qtySource: "counted" };
+  }
   if (packedMax > 0) return { qty: packedMax, qtySource: "inferred" };
   return { qty: 1, qtySource: "assumed" };
 }

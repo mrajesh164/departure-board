@@ -184,6 +184,11 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
               id: crypto.randomUUID(),
               label: item.label,
               category: item.category,
+              /* Deliberately no qty. This add is a side effect of packing, not
+                 a statement about how many you own — nobody was shown a number
+                 to accept. The inventory infers one from trips instead, and the
+                 row stays out of the shortfall warnings until it has evidence.
+                 Don't "fix" this to 1; see resolveQty in lib/inventory.ts. */
               addedAt: new Date().toISOString(),
             },
           ];
@@ -243,10 +248,13 @@ export function TripsProvider({ children }: { children: React.ReactNode }) {
             id: crypto.randomUUID(),
             label: trimmed,
             category: category.trim() || "Extras",
-            /* Left undefined unless they actually said a number, so the
-               inventory can infer one from trips instead of trusting a 1
-               nobody chose. */
-            qty: entry.qty === undefined ? undefined : clampQty(entry.qty),
+            /* Anything put through the inventory form starts at a real 1 rather
+               than an absent one. Someone who typed a thing in saw that number
+               and let it stand, which is a claim — unlike a row the app worked
+               out from trip history, where the 1 was nobody's idea. A 1 that
+               turns out to be wrong fixes itself: resolveQty takes the greater
+               of this and what's been packed. */
+            qty: clampQty(entry.qty ?? 1),
             addedAt: new Date().toISOString(),
           });
         }

@@ -246,13 +246,14 @@ function KitCategory({
                 : entry.packedTimes === 0
                   ? `Never packed, on ${entry.onTrips} ${entry.onTrips === 1 ? "list" : "lists"}`
                   : `Packed on ${entry.packedTimes} of ${entry.onTrips} ${entry.onTrips === 1 ? "trip" : "trips"}`}
-              {/* Where the number beside this row came from, said only when
-                  it's something other than a bare assumption. A count you set
-                  yourself needs no footnote; a 1 nobody chose doesn't deserve
-                  one. */}
-              {entry.qtySource === "inferred" && (
+              {/* Shown whenever there's packing evidence, not just when it won.
+                  It explains both the row that reads higher than the 1 you
+                  accepted, and why the stepper on a row you set yourself won't
+                  go below a certain number. A row with nothing behind it says
+                  nothing — a 1 nobody chose doesn't deserve a footnote. */}
+              {entry.packedMax > 0 && (
                 <span className="block text-muted">
-                  You&apos;ve packed {entry.qty}
+                  You&apos;ve packed {entry.packedMax}
                 </span>
               )}
             </span>
@@ -286,6 +287,10 @@ function KitCategory({
             <span className="flex justify-end sm:justify-self-end">
               <Stepper
                 value={entry.qty}
+                /* Can't go below what you've actually packed at once — the
+                   stepper would appear to accept it and resolveQty would put it
+                   straight back, which looks like a bug. */
+                min={Math.max(1, entry.packedMax)}
                 onChange={(qty) => onSetQty(entry.label, entry.category, qty)}
                 noun={entry.label.toLowerCase()}
               />

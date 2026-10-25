@@ -136,19 +136,23 @@ number comes from one of three places:
 
 | | Where it comes from |
 |---|---|
-| **Counted** | You set it — the stepper, or an `x3` on the end when adding. |
+| **Counted** | You set it — the stepper, an `x3` on the end when adding, or the **1** that anything you add through the form starts at. |
 | **Inferred** | The most you've ever *packed at once*. Tick "Socks × 6" off a list and you demonstrably own six pairs. Shown as "You've packed 6". |
 | **Assumed** | `1`. It's been on a list but never ticked, so there's no evidence either way. |
 
-So every row shows a number straight away without anyone filling in a form, and nothing is
-invented — the inferred floor comes from what you actually packed. Nudging any stepper
-promotes that row to **Counted**, which is also what claims a derived row as yours; there's
-no separate step for that.
+Anything you type in starts at **1** and you change it from there, because someone who adds
+a thing and leaves the number alone has still told you something. A row the app worked out
+from your trip history is different — that 1 was nobody's idea, so it stays quiet.
+
+A count you set never gets in the way of one you've proved: **the row shows the greater of
+the two.** Accept the 1 on "Socks", then tick "Socks × 6" off a list, and the row corrects
+itself to 6. The stepper won't go below that floor either. So a hasty 1 costs nothing — it
+fixes itself the first time you actually pack the thing.
 
 The payoff is on the checklist: when a list asks for more than you own, the row says
-**"You own 2"** under the label. That only fires on counted and inferred numbers. Assumed
-ones stay silent — everything uncounted sits at 1, so warning on those would light up every
-row of a week-long trip and mean nothing.
+**"You own 1"** under the label. That only fires on counted and inferred numbers. Assumed
+ones stay silent — otherwise a new person's very first list, generated against an empty
+inventory, would warn on every row that asks for more than one.
 
 ## How the list gets built
 

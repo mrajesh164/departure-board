@@ -87,23 +87,37 @@ this order:
 
 | Source | Where the number comes from | Trust |
 | --- | --- | --- |
-| `counted` | `KitItem.qty` — the stepper, or an `x3` suffix when adding | True |
+| `counted` | `KitItem.qty` — the stepper, an `x3` suffix, or the 1 a form add starts at | True |
 | `inferred` | `packedMax`, the most ever ticked off a list at once | A floor |
 | `assumed` | `1`, because it's been on a list but never ticked | None |
 
-`KitItem.qty` is **optional on purpose**. Undefined means nobody ever said, which
-is the common case (pasted lists, and items auto-added by `addItem`). Don't
-default it to 1 on write — the inventory infers a better number from trips, and
-collapsing the two would make an assumption indistinguishable from a fact.
+**The number is `max(counted, packedMax)`.** You cannot own fewer of something
+than you have packed at once, so evidence raises a claim and never the reverse.
+This is what makes a default of 1 safe: accept the 1 on "Socks", tick
+"Socks × 6" off a list, and the row reads 6 rather than holding a stale number.
+Storage still says 1 — the max is computed on read, so nothing is rewritten
+behind the user's back.
 
-Two things depend on that distinction:
+**`KitItem.qty` is optional, and the two cases are not the same claim:**
+
+- Added through the **inventory form** → a real `1`. They saw that number and
+  let it stand, so it counts and it may warn.
+- Added as a **side effect of packing** (`addItem`, "if you packed it, you own
+  it") → left undefined. Nobody was shown a quantity to accept. Don't "fix"
+  this to 1; it would turn a side effect into a claim and warn on rows the
+  person never counted.
+
+Two more things depend on the distinction:
 
 - `setKitQty` **creates** the `KitItem` when a label only exists as a derived
   row. Nudging a stepper is the whole "this is mine" flow; there is no separate
   claim step.
 - `shortfall()` ignores `assumed` numbers. Everything uncounted sits at 1, so
-  without that guard a week-long trip would warn on every row and the warning
-  would stop meaning anything. Only `counted` and `inferred` may speak.
+  without that guard a new person's first trip would warn on every row that
+  asks for more than one. Only `counted` and `inferred` may speak.
+
+The inventory stepper's `min` is `packedMax`, so it can't be set below the
+floor — `resolveQty` would only put it back, which reads as a bug.
 
 Listing something already in the inventory **adds up** rather than erroring — to
 the count given, or one more than the row shows. The old "already in your
