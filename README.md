@@ -136,13 +136,19 @@ number comes from one of three places:
 
 | | Where it comes from |
 |---|---|
-| **Counted** | You set it — the stepper, an `x3` on the end when adding, or the **1** that anything you add through the form starts at. |
+| **Counted** | You set it — the **How many** field when adding, the stepper on the row afterwards, or the **1** both of those start at. |
 | **Inferred** | The most you've ever *packed at once*. Tick "Socks × 6" off a list and you demonstrably own six pairs. Shown as "You've packed 6". |
 | **Assumed** | `1`. It's been on a list but never ticked, so there's no evidence either way. |
 
-Anything you type in starts at **1** and you change it from there, because someone who adds
-a thing and leaves the number alone has still told you something. A row the app worked out
-from your trip history is different — that 1 was nobody's idea, so it stays quiet.
+The add form carries a **How many** field under the category, and like the category it
+applies to everything in that submission — add "Rain shell, Hiking boots" and both land in
+one place at one count. It starts at **1**, which is what most things are, and anything you
+add keeps that 1 until you change it: someone who adds a thing and leaves the number alone
+has still told you something. A row the app worked out from your trip history is different
+— that 1 was nobody's idea, so it stays quiet.
+
+Listing something already there adds up rather than erroring. With **How many** at 1 that
+means *one more* (`Socks → 3`); set it above 1 and it's taken as the count itself.
 
 A count you set never gets in the way of one you've proved: **the row shows the greater of
 the two.** Accept the 1 on "Socks", then tick "Socks × 6" off a list, and the row corrects

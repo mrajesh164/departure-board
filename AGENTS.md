@@ -87,7 +87,7 @@ this order:
 
 | Source | Where the number comes from | Trust |
 | --- | --- | --- |
-| `counted` | `KitItem.qty` — the stepper, an `x3` suffix, or the 1 a form add starts at | True |
+| `counted` | `KitItem.qty` — the **How many** field, the row's stepper, or the 1 both default to | True |
 | `inferred` | `packedMax`, the most ever ticked off a list at once | A floor |
 | `assumed` | `1`, because it's been on a list but never ticked | None |
 
@@ -119,10 +119,21 @@ Two more things depend on the distinction:
 The inventory stepper's `min` is `packedMax`, so it can't be set below the
 floor — `resolveQty` would only put it back, which reads as a bug.
 
-Listing something already in the inventory **adds up** rather than erroring — to
-the count given, or one more than the row shows. The old "already in your
-inventory" error was the wrong answer to a reasonable request (see the Assignment
-3 feedback: owning two t-shirts was unsayable).
+`AddKitForm`'s **How many** field sets the count for the whole submission, as
+the category does, and resets to 1 after each add — the category persists
+because people file several things into one place in a row, but a 2 carried
+into the next add would quietly claim two of whatever comes next.
+
+`parseEntries` still understands a trailing `x3` and a line that names its own
+count overrides the field. It isn't advertised anywhere; it stays because
+pasting a list that already carries counts is a real thing to do, and the
+alternative is an item named "Wool socks x2".
+
+Listing something already in the inventory **adds up** rather than erroring. With
+**How many** at 1 that means one more than the row shows; above 1 it's taken as
+the count. The old "already in your inventory" error was the wrong answer to a
+reasonable request (see the Assignment 3 feedback: owning two t-shirts was
+unsayable).
 
 **Categories are open.** `ItemCategory` is a plain `string`; `KNOWN_CATEGORIES`
 holds the seven defaults and `categoriesPresent()` orders known-then-custom. Use

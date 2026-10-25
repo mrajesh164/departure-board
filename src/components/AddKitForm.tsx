@@ -23,10 +23,11 @@ const NEW_CATEGORY = "__new__";
  * One per line, or comma separated, or both — with an optional count on the
  * end: "T-shirt x3", "Wool socks × 2".
  *
- * The count is a suffix rather than its own field on purpose. This textarea
- * exists so a list can be pasted straight out of notes, and a quantity input
- * beside it would break that in exchange for something the stepper on each row
- * already does better.
+ * The suffix isn't advertised anywhere; the How many field is what people are
+ * pointed at. It stays supported because pasting a list that already carries
+ * counts is a real thing to do, and the alternative is silently creating an
+ * item named "Wool socks x2". A line that names its own count overrides the
+ * field, being the more specific of the two.
  */
 function parseEntries(raw: string): KitAddition[] {
   return raw
@@ -56,8 +57,11 @@ export function AddKitForm({
   const [raw, setRaw] = useState("");
   const [category, setCategory] = useState<string>("Clothing");
   const [customCategory, setCustomCategory] = useState("");
+  /** Held as a string so the field can be empty mid-typing. */
+  const [qty, setQty] = useState("1");
   const [error, setError] = useState<string>();
   const [categoryError, setCategoryError] = useState<string>();
+  const [qtyError, setQtyError] = useState<string>();
   const [added, setAdded] = useState<string>();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -81,6 +85,16 @@ export function AddKitForm({
       return;
     }
 
+    /* The count applies to everything in this submission, the same way the
+       category does — add "Rain shell, Hiking boots" and both land in one
+       place, at one count. A line carrying its own "x3" keeps it. */
+    const batchQty = Number(qty);
+    if (!Number.isInteger(batchQty) || batchQty < 1 || batchQty > 99) {
+      setQtyError("A whole number, 1 to 99.");
+      queueMicrotask(() => focusFirstError(formRef.current));
+      return;
+    }
+
     /**
      * Listing something twice used to be an error, which was the wrong answer
      * to the right question: someone typing "T-shirt" when a t-shirt is already
@@ -94,10 +108,14 @@ export function AddKitForm({
     for (const entry of parsed) {
       const current = known.get(entry.label.toLowerCase());
       if (!current) {
-        fresh.push(entry);
+        fresh.push({ ...entry, qty: entry.qty ?? batchQty });
         continue;
       }
-      const next = entry.qty ?? current.qty + 1;
+      /* A repeat means another one of these: the count given, or one more than
+         the row already shows. The field's default of 1 must not read as "set
+         this to 1", which would quietly undo a bigger count. */
+      const next =
+        entry.qty ?? (batchQty > 1 ? batchQty : current.qty + 1);
       if (next === current.qty) continue;
       /* Its own category, not whatever the select happens to be showing — this
          row already has a home and the add form isn't choosing it. */
@@ -108,11 +126,30 @@ export function AddKitForm({
     if (fresh.length > 0) onAdd(fresh, resolved);
 
     setRaw("");
+    /* The category persists — people file several things in a row into the same
+       place. The count doesn't: "2" was about the socks, and carrying it into
+       the next add would quietly claim two of whatever comes next. */
+    setQty("1");
     setError(undefined);
     setCategoryError(undefined);
+    setQtyError(undefined);
+
+    /* Say the count back. The field is the whole point of this form now, so a
+       confirmation that doesn't mention the number leaves you checking the
+       rows to see whether it took. */
+    const addedSaid =
+      fresh.length === 0
+        ? null
+        : fresh.length === 1
+          ? `Added ${fresh[0]!.label}${
+              fresh[0]!.qty && fresh[0]!.qty > 1 ? ` × ${fresh[0]!.qty}` : ""
+            } to ${resolved}`
+          : `Added ${fresh.length} to ${resolved}${
+              batchQty > 1 ? `, ${batchQty} each` : ""
+            }`;
 
     const said = [
-      fresh.length > 0 ? `Added ${fresh.length} to ${resolved}` : null,
+      addedSaid,
       counted.length > 0 ? counted.join(", ") : null,
     ].filter(Boolean);
     setAdded(
@@ -134,9 +171,7 @@ export function AddKitForm({
       className="mt-6 border border-rule bg-surface p-5"
     >
       <p className="measure mb-4 text-small text-muted">
-        One per line, or separated by commas — add{" "}
-        <span className="whitespace-nowrap">&ldquo;x2&rdquo;</span> for more than
-        one. Things you pack show up here too.
+        One per line, or separated by commas. Things you pack show up here too.
       </p>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -150,7 +185,7 @@ export function AddKitForm({
                 {...props}
                 value={raw}
                 rows={3}
-                placeholder={"Rain shell\nHiking boots\nWool socks x2"}
+                placeholder={"Rain shell\nHiking boots\nHead torch"}
                 onChange={(e) => {
                   setRaw(e.target.value);
                   if (error) setError(undefined);
@@ -195,6 +230,28 @@ export function AddKitForm({
                   />
                 )}
               </>
+            )}
+          </Field>
+
+          {/* Applies to everything in this submission, like the category above
+              it. Most things are one, so it starts at 1 and is there for the
+              times they aren't. */}
+          <Field label="How many" error={qtyError}>
+            {(props) => (
+              <TextInput
+                {...props}
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={99}
+                step={1}
+                value={qty}
+                onChange={(e) => {
+                  setQty(e.target.value);
+                  if (qtyError) setQtyError(undefined);
+                  if (added) setAdded(undefined);
+                }}
+              />
             )}
           </Field>
         </div>
